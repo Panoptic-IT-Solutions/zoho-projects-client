@@ -29,12 +29,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/panoptic-it-solutions/zoho-projects-client.git"
+    "url": "git+https://github.com/Panoptic-IT-Solutions/zoho-projects-client.git"
   },
   "bugs": {
-    "url": "https://github.com/panoptic-it-solutions/zoho-projects-client/issues"
+    "url": "https://github.com/Panoptic-IT-Solutions/zoho-projects-client/issues"
   },
-  "homepage": "https://github.com/panoptic-it-solutions/zoho-projects-client#readme",
+  "homepage": "https://github.com/Panoptic-IT-Solutions/zoho-projects-client#readme",
   "publishConfig": {
     "access": "public"
   },
