@@ -7,8 +7,8 @@ import { ZohoAuthenticationError } from "../errors.js";
 export interface TokenManagerConfig {
   clientId: string;
   clientSecret: string;
+  refreshToken: string;
   accountsUrl: string;
-  scopes: string[];
 }
 
 /**
@@ -97,10 +97,10 @@ export class TokenManager {
         null,
         {
           params: {
-            grant_type: "client_credentials",
+            grant_type: "refresh_token",
             client_id: this.config.clientId,
             client_secret: this.config.clientSecret,
-            scope: this.config.scopes.join(","),
+            refresh_token: this.config.refreshToken,
           },
         }
       );

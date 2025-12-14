@@ -41,6 +41,8 @@ export interface ZohoProjectsConfig {
   clientId: string;
   /** OAuth client secret from Zoho Developer Console */
   clientSecret: string;
+  /** OAuth refresh token (obtained via authorization code flow) */
+  refreshToken: string;
   /** Zoho Projects portal ID */
   portalId: string;
   /** API base URL (default: https://projectsapi.zoho.com) */
@@ -49,21 +51,9 @@ export interface ZohoProjectsConfig {
   accountsUrl?: string;
   /** Request timeout in milliseconds (default: 30000) */
   timeout?: number;
-  /** OAuth scopes (default: ["ZohoProjects.projects.READ", "ZohoProjects.tasks.READ", "ZohoProjects.timesheets.READ", "ZohoProjects.users.READ"]) */
-  scopes?: string[];
   /** Redis configuration for distributed rate limiting */
   redis?: RateLimiterConfig["redis"];
 }
-
-/**
- * Default OAuth scopes for read-only access
- */
-const DEFAULT_SCOPES = [
-  "ZohoProjects.projects.READ",
-  "ZohoProjects.tasks.READ",
-  "ZohoProjects.timesheets.READ",
-  "ZohoProjects.users.READ",
-];
 
 /**
  * Default API URL (US region)
@@ -102,11 +92,11 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
   const {
     clientId,
     clientSecret,
+    refreshToken,
     portalId,
     apiUrl = DEFAULT_API_URL,
     accountsUrl = DEFAULT_ACCOUNTS_URL,
     timeout = 30000,
-    scopes = DEFAULT_SCOPES,
     redis,
   } = config;
 
@@ -114,8 +104,8 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
   const tokenManagerConfig: TokenManagerConfig = {
     clientId,
     clientSecret,
+    refreshToken,
     accountsUrl,
-    scopes,
   };
   const tokenManager = new TokenManager(tokenManagerConfig);
 

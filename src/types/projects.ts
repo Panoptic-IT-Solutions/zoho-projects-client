@@ -30,7 +30,7 @@ export const ProjectSchema = z.object({
 
   // Status
   status: z.enum(["active", "archived", "template"]).optional(),
-  custom_status_id: z.number().nullable().optional(),
+  custom_status_id: z.union([z.number(), z.string()]).nullable().optional(),
   custom_status_name: z.string().nullable().optional(),
 
   // Dates - Zoho returns MM-DD-YYYY format strings and epoch timestamps
@@ -44,12 +44,12 @@ export const ProjectSchema = z.object({
   end_date_long: z.number().nullable().optional(),
 
   // Ownership
-  owner_id: z.string().optional(),
+  owner_id: z.union([z.string(), z.number()]).optional(),
   owner_name: z.string().optional(),
-  owner_zpuid: z.string().optional(),
+  owner_zpuid: z.union([z.string(), z.number()]).optional(),
   owner_email: z.string().optional(),
-  created_by: z.string().optional(),
-  created_by_zpuid: z.string().optional(),
+  created_by: z.union([z.string(), z.number()]).optional(),
+  created_by_zpuid: z.union([z.string(), z.number()]).optional(),
 
   // Access & Visibility
   is_public: z.enum(["yes", "no"]).optional(),

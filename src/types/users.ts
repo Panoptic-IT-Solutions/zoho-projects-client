@@ -2,15 +2,9 @@ import { z } from "zod";
 import { ZohoPageInfoSchema } from "./common.js";
 
 /**
- * User role enum
+ * User role - Zoho has many role types including custom ones
  */
-export const UserRoleSchema = z.enum([
-  "admin",
-  "manager",
-  "employee",
-  "contractor",
-  "client",
-]);
+export const UserRoleSchema = z.string();
 
 export type UserRole = z.infer<typeof UserRoleSchema>;
 

@@ -5,7 +5,7 @@ import { CustomFieldSchema, ZohoPageInfoSchema } from "./common.js";
  * Task status object
  */
 export const TaskStatusSchema = z.object({
-  id: z.number(),
+  id: z.union([z.number(), z.string()]),
   name: z.string(),
   type: z.string().optional(), // "open" or "closed"
   color_code: z.string().optional(),
@@ -17,7 +17,7 @@ export type TaskStatus = z.infer<typeof TaskStatusSchema>;
  * Task list reference
  */
 export const TaskListRefSchema = z.object({
-  id: z.number(),
+  id: z.union([z.number(), z.string()]),
   id_string: z.string().optional(),
   name: z.string(),
 });
@@ -80,8 +80,8 @@ export const TaskSchema = z.object({
   // Status & Progress
   status: TaskStatusSchema.optional(),
   completed: z.boolean().optional(),
-  percent_complete: z.number().optional(), // 0-100
-  priority: z.enum(["None", "Low", "Medium", "High"]).optional(),
+  percent_complete: z.union([z.number(), z.string()]).optional(), // 0-100
+  priority: z.string().optional(), // None, Low, Medium, High, or custom
 
   // Dates - Zoho returns MM-DD-YYYY format strings and epoch timestamps
   start_date: z.string().nullable().optional(),
@@ -95,28 +95,28 @@ export const TaskSchema = z.object({
   last_updated_time_long: z.number().optional(),
 
   // Duration & Work
-  duration: z.number().nullable().optional(),
-  duration_type: z.enum(["days", "hrs"]).optional(),
+  duration: z.union([z.number(), z.string()]).nullable().optional(),
+  duration_type: z.string().optional(), // "days", "hrs", etc.
   work: z.string().nullable().optional(), // Format: "208:00"
-  work_type: z.enum(["work_hrs_per_day", "work_in_percentage", "work_hours"]).optional(),
+  work_type: z.string().optional(), // "work_hrs_per_day", "work_in_percentage", "work_hours"
 
   // Ownership & Assignment
-  created_by: z.number().optional(),
+  created_by: z.union([z.number(), z.string()]).optional(),
   created_person: z.string().optional(),
   details: TaskDetailsSchema.optional(),
 
   // Organization & Hierarchy
   tasklist: TaskListRefSchema.optional(),
-  milestone_id: z.number().nullable().optional(),
-  parent_task_id: z.number().nullable().optional(),
-  root_task_id: z.number().nullable().optional(),
+  milestone_id: z.union([z.number(), z.string()]).nullable().optional(),
+  parent_task_id: z.union([z.number(), z.string()]).nullable().optional(),
+  root_task_id: z.union([z.number(), z.string()]).nullable().optional(),
   isparent: z.boolean().optional(),
   subtasks: z.boolean().optional(),
   depth: z.number().optional(),
   order_sequence: z.number().optional(),
 
   // Billing
-  billingtype: z.enum(["None", "billable", "non_billable"]).optional(),
+  billingtype: z.string().optional(),
   log_hours: LogHoursSchema.optional(),
 
   // Project reference
