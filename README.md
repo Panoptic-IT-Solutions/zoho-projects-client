@@ -16,6 +16,7 @@ import { createZohoProjectsClient } from "@panoptic-it-solutions/zoho-projects-c
 const client = createZohoProjectsClient({
   clientId: process.env.ZOHO_CLIENT_ID!,
   clientSecret: process.env.ZOHO_CLIENT_SECRET!,
+  refreshToken: process.env.ZOHO_REFRESH_TOKEN!,
   portalId: process.env.ZOHO_PORTAL_ID!,
 });
 
@@ -31,6 +32,37 @@ for await (const project of client.projects.iterate()) {
 }
 ```
 
+## Authentication Setup
+
+Zoho requires OAuth 2.0 with a refresh token. Here's how to get one:
+
+### 1. Create a Client
+
+1. Go to [Zoho API Console](https://api-console.zoho.com) (or `.eu`, `.in`, `.com.au` for your region)
+2. Click **Add Client** → **Server-based Applications**
+3. Fill in the details and click **Create**
+4. Copy the **Client ID** and **Client Secret**
+
+### 2. Generate a Refresh Token
+
+1. In API Console, select your client → **Generate Code** → **Self Client**
+2. Enter scope:
+   ```
+   ZohoProjects.projects.READ,ZohoProjects.tasks.READ,ZohoProjects.timesheets.READ,ZohoProjects.users.READ,ZohoProjects.portals.READ
+   ```
+3. Click **Create** and copy the authorization code
+4. Exchange it for a refresh token (within 2 minutes):
+
+```bash
+curl -X POST "https://accounts.zoho.com/oauth/v2/token" \
+  -d "grant_type=authorization_code" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "code=YOUR_AUTH_CODE"
+```
+
+5. Copy the `refresh_token` from the response (it doesn't expire unless revoked)
+
 ## Configuration
 
 ```typescript
@@ -38,6 +70,7 @@ const client = createZohoProjectsClient({
   // Required
   clientId: "your_client_id",
   clientSecret: "your_client_secret",
+  refreshToken: "your_refresh_token",
   portalId: "your_portal_id",
 
   // Optional - defaults shown
@@ -99,18 +132,26 @@ const allTasks = await client.tasks.listAllAcrossProjects();
 
 ### Time Logs
 
+Time logs require specific parameters:
+
 ```typescript
 // List time logs for a project
 const { data } = await client.timelogs.list("project_id", {
-  bill_status: "Billable",
-  view_type: "week",
+  users_list: "all",              // "all" or comma-separated user IDs
+  view_type: "month",             // "day", "week", "month", or "custom_date"
+  date: "12-14-2025",             // MM-DD-YYYY format
+  bill_status: "All",             // "All", "Billable", or "Non Billable"
+  component_type: "task",         // "task", "bug", or "general"
 });
 
 // Get all time logs for a project
-const logs = await client.timelogs.listAll("project_id");
-
-// Get all time logs across all projects
-const allLogs = await client.timelogs.listAllAcrossProjects();
+const logs = await client.timelogs.listAll("project_id", {
+  users_list: "all",
+  view_type: "month",
+  date: "12-14-2025",
+  bill_status: "All",
+  component_type: "task",
+});
 ```
 
 ### Users
@@ -177,6 +218,7 @@ try {
 ```env
 ZOHO_CLIENT_ID=your_client_id
 ZOHO_CLIENT_SECRET=your_client_secret
+ZOHO_REFRESH_TOKEN=your_refresh_token
 ZOHO_PORTAL_ID=your_portal_id
 
 # Optional - defaults to US region
