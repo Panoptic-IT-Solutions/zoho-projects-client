@@ -1,0 +1,42 @@
+{
+  "name": "@panoptic-it-solutions/zoho-projects-client",
+  "version": "0.1.0",
+  "description": "TypeScript client for Zoho Projects V3 API with OAuth 2.0 and rate limiting",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "zoho",
+    "zoho-projects",
+    "api-client",
+    "typescript"
+  ],
+  "author": "Panoptic IT Solutions",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.0",
+    "bottleneck": "^2.19.5",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
