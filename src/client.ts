@@ -344,23 +344,39 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
        */
       async list(
         projectId: string,
-        params?: TimeLogParams
+        params: TimeLogParams
       ): Promise<PaginatedResponse<TimeLog>> {
-        const response = await requestWithValidation(
+        // Make the request - may return 204 No Content if no logs
+        const rawResponse = await request<unknown>(
           `${basePath}/projects/${projectId}/logs/`,
-          TimeLogListResponseSchema,
           {
             params: {
-              index: params?.index ?? 0,
-              range: params?.range ?? DEFAULT_PAGE_SIZE,
-              users_list: params?.users_list,
-              view_type: params?.view_type,
-              date: params?.date,
-              bill_status: params?.bill_status,
-              component_type: params?.component_type,
+              index: params.index ?? 0,
+              range: params.range ?? DEFAULT_PAGE_SIZE,
+              users_list: params.users_list,
+              view_type: params.view_type,
+              date: params.date,
+              bill_status: params.bill_status,
+              component_type: params.component_type,
             },
           }
         );
+
+        // Handle 204 No Content (empty string response)
+        if (!rawResponse || rawResponse === "") {
+          return { data: [], pageInfo: undefined };
+        }
+
+        // Validate response structure
+        const result = TimeLogListResponseSchema.safeParse(rawResponse);
+        if (!result.success) {
+          throw new ZohoResponseValidationError(
+            `Invalid API response structure: ${result.error.message}`,
+            result.error.errors,
+            rawResponse
+          );
+        }
+        const response = result.data;
 
         // Flatten the nested date structure into a simple array
         const logs: TimeLog[] = [];
@@ -387,7 +403,7 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
        */
       async listAll(
         projectId: string,
-        params?: Omit<TimeLogParams, "index" | "range">,
+        params: Omit<TimeLogParams, "index" | "range">,
         options?: AutoPaginateOptions
       ): Promise<TimeLog[]> {
         return collectAll(this.iterate(projectId, params, options));
@@ -398,7 +414,7 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
        */
       iterate(
         projectId: string,
-        params?: Omit<TimeLogParams, "index" | "range">,
+        params: Omit<TimeLogParams, "index" | "range">,
         options?: AutoPaginateOptions
       ): AsyncGenerator<TimeLog, void, unknown> {
         return autoPaginate(
@@ -411,7 +427,7 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
        * List all time logs across all projects
        */
       async listAllAcrossProjects(
-        params?: Omit<TimeLogParams, "index" | "range">,
+        params: Omit<TimeLogParams, "index" | "range">,
         options?: AutoPaginateOptions
       ): Promise<TimeLog[]> {
         const projects = await this._getProjectsRef().listAll();

@@ -144,13 +144,19 @@ export type TimeLogListResponse = z.infer<typeof TimeLogListResponseSchema>;
 
 /**
  * Parameters for listing time logs
+ * Note: users_list, view_type, date, bill_status, and component_type are required by Zoho API
  */
 export interface TimeLogParams {
   index?: number;
   range?: number;
-  users_list?: string; // Comma-separated user IDs
-  view_type?: "day" | "week" | "month";
-  date?: string; // MM-DD-YYYY
-  bill_status?: "Billable" | "Non Billable" | "all";
-  component_type?: "task" | "bug" | "general";
+  /** User IDs - use "all" for all users, or comma-separated user IDs */
+  users_list: string;
+  /** View type for date range */
+  view_type: "day" | "week" | "month" | "custom_date";
+  /** Date in MM-DD-YYYY format */
+  date: string;
+  /** Billing status filter */
+  bill_status: "All" | "Billable" | "Non Billable";
+  /** Component type filter */
+  component_type: "task" | "bug" | "general";
 }

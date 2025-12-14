@@ -42,12 +42,20 @@ async function main() {
   if (projects.length > 0) {
     console.log("\n4. Fetching time logs for first project...");
     try {
+      // Get today's date in MM-DD-YYYY format
+      const today = new Date();
+      const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}-${today.getFullYear()}`;
+
       const { data: logs } = await client.timelogs.list(projects[0].id_string, {
-        view_type: "week",
+        users_list: "all",
+        view_type: "month",
+        date: dateStr,
+        bill_status: "All",
+        component_type: "task",
       });
       console.log(`   Found ${logs.length} time logs`);
     } catch (err: any) {
-      console.log(`   Time logs: ${err.message} (may need data in project)`);
+      console.log(`   Time logs: ${err.message}`);
     }
   }
 
