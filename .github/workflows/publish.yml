@@ -16,13 +16,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: npm ci
@@ -35,22 +33,32 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Determine version bump
-        id: version
+      - name: Check if version already published
+        id: check
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          if echo "$COMMIT_MSG" | grep -q "\[major\]"; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-          elif echo "$COMMIT_MSG" | grep -q "\[minor\]"; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if npm view @panoptic-it-solutions/zoho-projects-client@$CURRENT_VERSION version 2>/dev/null; then
+            echo "published=true" >> $GITHUB_OUTPUT
           else
-            echo "bump=patch" >> $GITHUB_OUTPUT
+            echo "published=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Bump version
+        if: steps.check.outputs.published == 'true'
         run: |
-          npm version ${{ steps.version.outputs.bump }} -m "chore: release v%s [skip ci]"
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if echo "$COMMIT_MSG" | grep -q "\[major\]"; then
+            BUMP=major
+          elif echo "$COMMIT_MSG" | grep -q "\[minor\]"; then
+            BUMP=minor
+          else
+            BUMP=patch
+          fi
+          npm version $BUMP -m "chore: release v%s [skip ci]"
           git push --follow-tags
 
-      - name: Publish to npm (trusted publishing)
+      - name: Publish to npm
+        if: steps.check.outputs.published == 'false' || steps.check.outputs.published == 'true'
         run: npm publish --access public --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
