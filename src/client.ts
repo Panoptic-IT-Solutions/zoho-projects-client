@@ -65,6 +65,21 @@ import {
   TrashItemSchema,
   TrashListResponseSchema,
   TrashRestoreResponseSchema,
+  PortalSchema,
+  PortalListResponseSchema,
+  ModuleSchema,
+  ModuleListResponseSchema,
+  ModuleFieldSchema,
+  ModuleFieldListResponseSchema,
+  TimerSchema,
+  TimerResponseSchema,
+  TimerListResponseSchema,
+  CustomViewSchema,
+  CustomViewListResponseSchema,
+  BlueprintSchema,
+  BlueprintListResponseSchema,
+  NextTransitionsResponseSchema,
+  DuringActionsResponseSchema,
   type Project,
   type Task,
   type TimeLog,
@@ -95,6 +110,15 @@ import {
   type SearchResponse,
   type TrashItem,
   type TrashRestoreResponse,
+  type Portal,
+  type Module,
+  type ModuleField,
+  type Timer,
+  type CustomView,
+  type Blueprint,
+  type BlueprintTransition,
+  type NextTransitionsResponse,
+  type DuringActionsResponse,
   type CommentableEntityType,
   type FollowableEntityType,
   type ListParams,
@@ -153,6 +177,15 @@ import {
   type SearchQueryInput,
   type TrashFilterInput,
   type TrashableEntityType,
+  type ModuleFilterInput,
+  type StartTimerInput,
+  type StopTimerInput,
+  type PauseResumeTimerInput,
+  type CreateCustomViewInput,
+  type UpdateCustomViewInput,
+  type CustomViewEntityType,
+  type ExecuteTransitionInput,
+  type BlueprintModuleType,
 } from "./types/index.js";
 import { createRateLimiter, type RateLimiterConfig } from "./utils/rate-limiter.js";
 import {
@@ -2673,6 +2706,626 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         params?: Omit<TrashFilterInput, "project_id"> & ListParams
       ): Promise<PaginatedResponse<TrashItem>> {
         return this.list({ ...params, project_id: projectId });
+      },
+    },
+
+    /**
+     * Portals API
+     * Note: Portals are accessed at a higher level than portal-specific endpoints
+     */
+    portals: {
+      /**
+       * List all portals accessible to the authenticated user
+       */
+      async list(): Promise<Portal[]> {
+        const response = await requestWithValidation(
+          `/restapi/portals/`,
+          PortalListResponseSchema
+        );
+        return response.portals;
+      },
+
+      /**
+       * Get a specific portal by ID
+       */
+      async get(portalId: string): Promise<Portal> {
+        const response = await requestWithValidation(
+          `/restapi/portals/${portalId}/`,
+          z.object({ portals: z.array(PortalSchema) })
+        );
+        if (response.portals.length === 0) {
+          throw new ZohoProjectsError(`Portal not found: ${portalId}`, 404);
+        }
+        return response.portals[0];
+      },
+
+      /**
+       * Get the current portal (the one configured in the client)
+       */
+      async getCurrent(): Promise<Portal> {
+        return this.get(portalId);
+      },
+    },
+
+    /**
+     * Modules API
+     * Get module definitions and field metadata
+     */
+    modules: {
+      /**
+       * List all modules in the portal
+       */
+      async list(params?: ModuleFilterInput): Promise<Module[]> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/modules/`,
+          ModuleListResponseSchema,
+          {
+            params: {
+              is_customized: params?.is_customized,
+              is_default: params?.is_default,
+              is_web_tab: params?.is_web_tab,
+            },
+          }
+        );
+        return response.modules;
+      },
+
+      /**
+       * Get a specific module by ID
+       */
+      async get(moduleId: string): Promise<Module> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/modules/${moduleId}/`,
+          z.object({ modules: z.array(ModuleSchema) })
+        );
+        if (response.modules.length === 0) {
+          throw new ZohoProjectsError(`Module not found: ${moduleId}`, 404);
+        }
+        return response.modules[0];
+      },
+
+      /**
+       * Get fields for a module
+       */
+      async getFields(moduleId: string): Promise<ModuleField[]> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/modules/${moduleId}/fields/`,
+          ModuleFieldListResponseSchema
+        );
+        return response.fields;
+      },
+
+      /**
+       * Get a specific field definition
+       */
+      async getField(moduleId: string, fieldId: string): Promise<ModuleField> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/modules/${moduleId}/fields/${fieldId}/`,
+          z.object({ fields: z.array(ModuleFieldSchema) })
+        );
+        if (response.fields.length === 0) {
+          throw new ZohoProjectsError(`Field not found: ${fieldId}`, 404);
+        }
+        return response.fields[0];
+      },
+
+      /**
+       * Get project-specific field values (custom field options specific to a project)
+       */
+      async getProjectFields(
+        projectId: string,
+        moduleId: string
+      ): Promise<ModuleField[]> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/settings/modules/${moduleId}/fields/`,
+          ModuleFieldListResponseSchema
+        );
+        return response.fields;
+      },
+    },
+
+    /**
+     * Timers API
+     * Start, stop, pause, and resume time tracking
+     */
+    timers: {
+      /**
+       * Get current running timer for the authenticated user
+       */
+      async getCurrent(): Promise<Timer | null> {
+        const rawResponse = await request<unknown>(
+          `${basePath}/mytimers/`
+        );
+
+        if (!rawResponse || rawResponse === "") {
+          return null;
+        }
+
+        const result = TimerListResponseSchema.safeParse(rawResponse);
+        if (!result.success || result.data.timers.length === 0) {
+          return null;
+        }
+        return result.data.timers[0];
+      },
+
+      /**
+       * List all running timers
+       */
+      async list(): Promise<Timer[]> {
+        const rawResponse = await request<unknown>(
+          `${basePath}/mytimers/`
+        );
+
+        if (!rawResponse || rawResponse === "") {
+          return [];
+        }
+
+        const result = TimerListResponseSchema.safeParse(rawResponse);
+        if (!result.success) {
+          return [];
+        }
+        return result.data.timers;
+      },
+
+      /**
+       * Start a timer for a task or issue
+       */
+      async start(data: StartTimerInput): Promise<Timer> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${data.project_id}/${data.type.toLowerCase()}s/${data.entity_id}/timer/start/`,
+          TimerResponseSchema,
+          {
+            method: "POST",
+            data: {
+              notes: data.notes,
+              bill_status: data.bill_status,
+            },
+          }
+        );
+        return response.timer || response.timers?.[0]!;
+      },
+
+      /**
+       * Stop a running timer
+       */
+      async stop(data: StopTimerInput): Promise<Timer> {
+        let path: string;
+        if (data.project_id && data.type && data.entity_id) {
+          path = `${basePath}/projects/${data.project_id}/${data.type.toLowerCase()}s/${data.entity_id}/timer/stop/`;
+        } else {
+          path = `${basePath}/mytimers/stop/`;
+        }
+
+        const response = await requestWithValidation(
+          path,
+          TimerResponseSchema,
+          {
+            method: "POST",
+            data: {
+              log_name: data.log_name,
+              date: data.date,
+              hours: data.hours,
+              start_time: data.start_time,
+              end_time: data.end_time,
+              bill_status: data.bill_status,
+              notes: data.notes,
+            },
+          }
+        );
+        return response.timer || response.timers?.[0]!;
+      },
+
+      /**
+       * Pause a running timer
+       */
+      async pause(data?: PauseResumeTimerInput): Promise<Timer> {
+        let path: string;
+        if (data?.type && data?.entity_id) {
+          path = `${basePath}/projects/${data.log_id}/${data.type.toLowerCase()}s/${data.entity_id}/timer/pause/`;
+        } else {
+          path = `${basePath}/mytimers/pause/`;
+        }
+
+        const response = await requestWithValidation(
+          path,
+          TimerResponseSchema,
+          {
+            method: "POST",
+            data: {
+              notes: data?.notes,
+            },
+          }
+        );
+        return response.timer || response.timers?.[0]!;
+      },
+
+      /**
+       * Resume a paused timer
+       */
+      async resume(data?: PauseResumeTimerInput): Promise<Timer> {
+        let path: string;
+        if (data?.type && data?.entity_id) {
+          path = `${basePath}/projects/${data.log_id}/${data.type.toLowerCase()}s/${data.entity_id}/timer/resume/`;
+        } else {
+          path = `${basePath}/mytimers/resume/`;
+        }
+
+        const response = await requestWithValidation(
+          path,
+          TimerResponseSchema,
+          {
+            method: "POST",
+            data: {
+              notes: data?.notes,
+            },
+          }
+        );
+        return response.timer || response.timers?.[0]!;
+      },
+
+      /**
+       * Start timer for a task
+       */
+      async startForTask(
+        projectId: string,
+        taskId: string,
+        options?: { notes?: string; bill_status?: "billable" | "non_billable" }
+      ): Promise<Timer> {
+        return this.start({
+          entity_id: taskId,
+          type: "Task",
+          project_id: projectId,
+          notes: options?.notes,
+          bill_status: options?.bill_status,
+        });
+      },
+
+      /**
+       * Start timer for an issue
+       */
+      async startForIssue(
+        projectId: string,
+        issueId: string,
+        options?: { notes?: string; bill_status?: "billable" | "non_billable" }
+      ): Promise<Timer> {
+        return this.start({
+          entity_id: issueId,
+          type: "Issue",
+          project_id: projectId,
+          notes: options?.notes,
+          bill_status: options?.bill_status,
+        });
+      },
+    },
+
+    /**
+     * Custom Views API
+     * Manage saved filters and views for tasks, issues, etc.
+     */
+    customViews: {
+      /**
+       * List custom views for a specific entity type
+       */
+      async list(
+        entityType: CustomViewEntityType,
+        params?: ListParams
+      ): Promise<PaginatedResponse<CustomView>> {
+        const response = await requestWithValidation(
+          `${basePath}/${entityType}/customviews/`,
+          CustomViewListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.customviews, pageInfo: response.page_info };
+      },
+
+      /**
+       * Get all custom views with auto-pagination
+       */
+      async listAll(
+        entityType: CustomViewEntityType,
+        options?: AutoPaginateOptions
+      ): Promise<CustomView[]> {
+        return collectAll(this.iterate(entityType, options));
+      },
+
+      /**
+       * Iterate over all custom views with auto-pagination
+       */
+      iterate(
+        entityType: CustomViewEntityType,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<CustomView, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(entityType, { index, range }),
+          options
+        );
+      },
+
+      /**
+       * Get a specific custom view
+       */
+      async get(
+        entityType: CustomViewEntityType,
+        viewId: string
+      ): Promise<CustomView> {
+        const response = await requestWithValidation(
+          `${basePath}/${entityType}/customviews/${viewId}/`,
+          z.object({ customviews: z.array(CustomViewSchema) })
+        );
+        if (response.customviews.length === 0) {
+          throw new ZohoProjectsError(`Custom view not found: ${viewId}`, 404);
+        }
+        return response.customviews[0];
+      },
+
+      /**
+       * Create a custom view
+       */
+      async create(
+        entityType: CustomViewEntityType,
+        data: CreateCustomViewInput
+      ): Promise<CustomView> {
+        const response = await requestWithValidation(
+          `${basePath}/${entityType}/customviews/`,
+          z.object({ customviews: z.array(CustomViewSchema) }),
+          { method: "POST", data }
+        );
+        return response.customviews[0];
+      },
+
+      /**
+       * Update a custom view
+       */
+      async update(
+        entityType: CustomViewEntityType,
+        viewId: string,
+        data: UpdateCustomViewInput
+      ): Promise<CustomView> {
+        const response = await requestWithValidation(
+          `${basePath}/${entityType}/customviews/${viewId}/`,
+          z.object({ customviews: z.array(CustomViewSchema) }),
+          { method: "PUT", data }
+        );
+        return response.customviews[0];
+      },
+
+      /**
+       * Delete a custom view
+       */
+      async delete(
+        entityType: CustomViewEntityType,
+        viewId: string
+      ): Promise<void> {
+        await request(`${basePath}/${entityType}/customviews/${viewId}/`, {
+          method: "DELETE",
+        });
+      },
+
+      /**
+       * List task custom views
+       */
+      forTasks() {
+        return {
+          list: (params?: ListParams) => this.list("tasks", params),
+          listAll: (options?: AutoPaginateOptions) => this.listAll("tasks", options),
+          iterate: (options?: AutoPaginateOptions) => this.iterate("tasks", options),
+          get: (viewId: string) => this.get("tasks", viewId),
+          create: (data: CreateCustomViewInput) => this.create("tasks", data),
+          update: (viewId: string, data: UpdateCustomViewInput) =>
+            this.update("tasks", viewId, data),
+          delete: (viewId: string) => this.delete("tasks", viewId),
+        };
+      },
+
+      /**
+       * List issue custom views
+       */
+      forIssues() {
+        return {
+          list: (params?: ListParams) => this.list("issues", params),
+          listAll: (options?: AutoPaginateOptions) => this.listAll("issues", options),
+          iterate: (options?: AutoPaginateOptions) => this.iterate("issues", options),
+          get: (viewId: string) => this.get("issues", viewId),
+          create: (data: CreateCustomViewInput) => this.create("issues", data),
+          update: (viewId: string, data: UpdateCustomViewInput) =>
+            this.update("issues", viewId, data),
+          delete: (viewId: string) => this.delete("issues", viewId),
+        };
+      },
+
+      /**
+       * List milestone custom views
+       */
+      forMilestones() {
+        return {
+          list: (params?: ListParams) => this.list("milestones", params),
+          listAll: (options?: AutoPaginateOptions) => this.listAll("milestones", options),
+          iterate: (options?: AutoPaginateOptions) => this.iterate("milestones", options),
+          get: (viewId: string) => this.get("milestones", viewId),
+          create: (data: CreateCustomViewInput) => this.create("milestones", data),
+          update: (viewId: string, data: UpdateCustomViewInput) =>
+            this.update("milestones", viewId, data),
+          delete: (viewId: string) => this.delete("milestones", viewId),
+        };
+      },
+    },
+
+    /**
+     * Blueprints API
+     * Workflow automation and status transitions
+     */
+    blueprints: {
+      /**
+       * List all blueprints
+       */
+      async list(params?: ListParams): Promise<PaginatedResponse<Blueprint>> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/blueprints/`,
+          BlueprintListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.blueprints, pageInfo: response.page_info };
+      },
+
+      /**
+       * Get all blueprints with auto-pagination
+       */
+      async listAll(options?: AutoPaginateOptions): Promise<Blueprint[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      /**
+       * Iterate over all blueprints with auto-pagination
+       */
+      iterate(
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Blueprint, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list({ index, range }),
+          options
+        );
+      },
+
+      /**
+       * Get a specific blueprint
+       */
+      async get(blueprintId: string): Promise<Blueprint> {
+        const response = await requestWithValidation(
+          `${basePath}/settings/blueprints/${blueprintId}/`,
+          z.object({ blueprints: z.array(BlueprintSchema) })
+        );
+        if (response.blueprints.length === 0) {
+          throw new ZohoProjectsError(
+            `Blueprint not found: ${blueprintId}`,
+            404
+          );
+        }
+        return response.blueprints[0];
+      },
+
+      /**
+       * Get available transitions for an entity (task or issue)
+       */
+      async getNextTransitions(
+        projectId: string,
+        moduleType: BlueprintModuleType,
+        entityId: string
+      ): Promise<NextTransitionsResponse> {
+        const modulePath = moduleType === "Task" ? "tasks" : "bugs";
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/${modulePath}/${entityId}/transitions/`,
+          NextTransitionsResponseSchema
+        );
+        return response;
+      },
+
+      /**
+       * Get required actions (fields) for a specific transition
+       */
+      async getDuringActions(
+        projectId: string,
+        moduleType: BlueprintModuleType,
+        entityId: string,
+        transitionId: string
+      ): Promise<DuringActionsResponse> {
+        const modulePath = moduleType === "Task" ? "tasks" : "bugs";
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/${modulePath}/${entityId}/transitions/${transitionId}/actions/`,
+          DuringActionsResponseSchema
+        );
+        return response;
+      },
+
+      /**
+       * Execute a blueprint transition
+       */
+      async executeTransition(
+        projectId: string,
+        moduleType: BlueprintModuleType,
+        transitionId: string,
+        data: ExecuteTransitionInput
+      ): Promise<void> {
+        const modulePath = moduleType === "Task" ? "tasks" : "bugs";
+        await request(
+          `${basePath}/projects/${projectId}/${modulePath}/${data.entity_id}/transitions/${transitionId}/`,
+          {
+            method: "POST",
+            data: {
+              skip_bug_validation: data.skip_bug_validation,
+              field_values: data.field_values,
+            },
+          }
+        );
+      },
+
+      /**
+       * Get transitions for a task
+       */
+      async getTaskTransitions(
+        projectId: string,
+        taskId: string
+      ): Promise<BlueprintTransition[]> {
+        const response = await this.getNextTransitions(
+          projectId,
+          "Task",
+          taskId
+        );
+        return response.transitions;
+      },
+
+      /**
+       * Get transitions for an issue
+       */
+      async getIssueTransitions(
+        projectId: string,
+        issueId: string
+      ): Promise<BlueprintTransition[]> {
+        const response = await this.getNextTransitions(
+          projectId,
+          "Issue",
+          issueId
+        );
+        return response.transitions;
+      },
+
+      /**
+       * Execute a task transition
+       */
+      async executeTaskTransition(
+        projectId: string,
+        taskId: string,
+        transitionId: string,
+        data?: Omit<ExecuteTransitionInput, "entity_id">
+      ): Promise<void> {
+        return this.executeTransition(projectId, "Task", transitionId, {
+          entity_id: taskId,
+          ...data,
+        });
+      },
+
+      /**
+       * Execute an issue transition
+       */
+      async executeIssueTransition(
+        projectId: string,
+        issueId: string,
+        transitionId: string,
+        data?: Omit<ExecuteTransitionInput, "entity_id">
+      ): Promise<void> {
+        return this.executeTransition(projectId, "Issue", transitionId, {
+          entity_id: issueId,
+          ...data,
+        });
       },
     },
 

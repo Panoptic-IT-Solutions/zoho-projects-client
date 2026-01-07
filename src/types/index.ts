@@ -441,3 +441,87 @@ export {
   type TrashFilterInput,
   type TrashableEntityType,
 } from "./trash.js";
+
+// Portal types
+export {
+  PortalSchema,
+  PortalListResponseSchema,
+  PortalResponseSchema,
+  type Portal,
+  type PortalListResponse,
+  type PortalResponse,
+} from "./portals.js";
+
+// Module types
+export {
+  ModuleSchema,
+  ModuleListResponseSchema,
+  ModuleFieldSchema,
+  ModuleFieldListResponseSchema,
+  FieldPickListOptionSchema,
+  ModuleFilterInputSchema,
+  type Module,
+  type ModuleListResponse,
+  type ModuleField,
+  type ModuleFieldListResponse,
+  type FieldPickListOption,
+  type ModuleFilterInput,
+} from "./modules.js";
+
+// Timer types
+export {
+  TimerSchema,
+  TimerResponseSchema,
+  TimerListResponseSchema,
+  StartTimerInputSchema,
+  StopTimerInputSchema,
+  PauseResumeTimerInputSchema,
+  type Timer,
+  type TimerResponse,
+  type TimerListResponse,
+  type StartTimerInput,
+  type StopTimerInput,
+  type PauseResumeTimerInput,
+} from "./timers.js";
+
+// Custom View types
+export {
+  CustomViewSchema,
+  CustomViewListResponseSchema,
+  CustomViewResponseSchema,
+  CustomViewColumnSchema,
+  CustomViewCriteriaSchema,
+  CreateCustomViewInputSchema,
+  UpdateCustomViewInputSchema,
+  type CustomView,
+  type CustomViewListResponse,
+  type CustomViewResponse,
+  type CustomViewColumn,
+  type CustomViewCriteria,
+  type CreateCustomViewInput,
+  type UpdateCustomViewInput,
+  type CustomViewEntityType,
+} from "./customviews.js";
+
+// Blueprint types
+export {
+  BlueprintSchema,
+  BlueprintListResponseSchema,
+  BlueprintResponseSchema,
+  BlueprintTransitionSchema,
+  BlueprintTransitionActionSchema,
+  BlueprintFieldValueSchema,
+  NextTransitionsResponseSchema,
+  DuringActionsResponseSchema,
+  ExecuteTransitionInputSchema,
+  type Blueprint,
+  type BlueprintListResponse,
+  type BlueprintResponse,
+  type BlueprintTransition,
+  type BlueprintTransitionAction,
+  type BlueprintFieldValue,
+  type NextTransitionsResponse,
+  type DuringActionsResponse,
+  type ExecuteTransitionInput,
+  type BlueprintModuleType,
+} from "./blueprints.js";
