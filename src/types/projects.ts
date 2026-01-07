@@ -112,3 +112,54 @@ export const ProjectResponseSchema = z.object({
 });
 
 export type ProjectResponse = z.infer<typeof ProjectResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SCHEMAS (CREATE/UPDATE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Input schema for creating a project
+ */
+export const CreateProjectInputSchema = z.object({
+  /** Project name (required) */
+  name: z.string().min(1),
+  /** Project description */
+  description: z.string().optional(),
+  /** Template project ID to copy from */
+  template_id: z.string().optional(),
+  /** Start date (MM-DD-YYYY format) */
+  start_date: z.string().optional(),
+  /** End date (MM-DD-YYYY format) */
+  end_date: z.string().optional(),
+  /** Project owner user ID */
+  owner: z.string().optional(),
+  /** Project status */
+  status: z.enum(["active", "archived"]).optional(),
+  /** Public visibility */
+  is_public: z.enum(["yes", "no"]).optional(),
+  /** Budget type */
+  budget_type: z.enum(["based_on_project_hours", "based_on_task_hours", "based_on_project_cost", "based_on_task_cost"]).optional(),
+  /** Budget value */
+  budget_value: z.number().optional(),
+  /** Threshold percentage for budget alerts */
+  threshold: z.number().optional(),
+  /** Currency code (e.g., "USD") */
+  currency_code: z.string().optional(),
+  /** Project rate per hour */
+  project_rate: z.number().optional(),
+  /** Group ID to assign project to */
+  group_id: z.string().optional(),
+  /** Layout ID for custom fields */
+  layout_id: z.string().optional(),
+  /** Custom field values */
+  custom_fields: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+});
+
+export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
+
+/**
+ * Input schema for updating a project (all fields optional)
+ */
+export const UpdateProjectInputSchema = CreateProjectInputSchema.partial();
+
+export type UpdateProjectInput = z.infer<typeof UpdateProjectInputSchema>;

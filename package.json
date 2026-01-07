@@ -5,6 +5,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "zoho-projects": "./dist/cli/init.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,11 +15,16 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
@@ -44,8 +52,12 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.3.0",
     "@types/node": "^22.0.0",
-    "typescript": "^5.6.0"
+    "@vitest/coverage-v8": "^2.1.0",
+    "msw": "^2.7.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

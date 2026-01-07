@@ -17,12 +17,142 @@ import {
   TimeLogListResponseSchema,
   UserSchema,
   UserListResponseSchema,
+  TagSchema,
+  TagListResponseSchema,
+  RoleSchema,
+  RoleListResponseSchema,
+  ProfileSchema,
+  ProfileListResponseSchema,
+  ClientSchema,
+  ClientListResponseSchema,
+  ContactSchema,
+  ContactListResponseSchema,
+  ProjectGroupSchema,
+  ProjectGroupListResponseSchema,
+  LeaveSchema,
+  LeaveListResponseSchema,
+  TeamSchema,
+  TeamListResponseSchema,
+  TaskListSchema,
+  TaskListListResponseSchema,
+  PhaseSchema,
+  PhaseListResponseSchema,
+  IssueSchema,
+  IssueListResponseSchema,
+  ForumSchema,
+  ForumListResponseSchema,
+  EventSchema,
+  EventListResponseSchema,
+  AttachmentSchema,
+  AttachmentListResponseSchema,
+  DocumentSchema,
+  DocumentListResponseSchema,
+  DocumentFolderSchema,
+  DocumentFolderListResponseSchema,
+  CommentSchema,
+  CommentListResponseSchema,
+  FollowerSchema,
+  FollowerListResponseSchema,
+  DashboardSchema,
+  DashboardListResponseSchema,
+  WidgetSchema,
+  WidgetListResponseSchema,
+  ReportSchema,
+  ReportListResponseSchema,
+  ReportDataResponseSchema,
+  SearchResultSchema,
+  SearchResponseSchema,
+  TrashItemSchema,
+  TrashListResponseSchema,
+  TrashRestoreResponseSchema,
   type Project,
   type Task,
   type TimeLog,
   type User,
+  type Tag,
+  type Role,
+  type Profile,
+  type Client,
+  type Contact,
+  type ProjectGroup,
+  type Leave,
+  type Team,
+  type TaskList,
+  type Phase,
+  type Issue,
+  type Forum,
+  type Event,
+  type Attachment,
+  type Document,
+  type DocumentFolder,
+  type Comment,
+  type Follower,
+  type Dashboard,
+  type Widget,
+  type Report,
+  type ReportDataResponse,
+  type SearchResult,
+  type SearchResponse,
+  type TrashItem,
+  type TrashRestoreResponse,
+  type CommentableEntityType,
+  type FollowableEntityType,
   type ListParams,
   type TimeLogParams,
+  type CreateProjectInput,
+  type UpdateProjectInput,
+  type CreateTaskInput,
+  type UpdateTaskInput,
+  type CreateTaskTimeLogInput,
+  type CreateBugTimeLogInput,
+  type CreateGeneralTimeLogInput,
+  type UpdateTimeLogInput,
+  type InviteUserInput,
+  type AddUserToProjectInput,
+  type UpdateUserInput,
+  type CreateTagInput,
+  type UpdateTagInput,
+  type CreateRoleInput,
+  type UpdateRoleInput,
+  type CreateProfileInput,
+  type UpdateProfileInput,
+  type CreateClientInput,
+  type UpdateClientInput,
+  type CreateContactInput,
+  type UpdateContactInput,
+  type CreateProjectGroupInput,
+  type UpdateProjectGroupInput,
+  type CreateLeaveInput,
+  type UpdateLeaveInput,
+  type CreateTeamInput,
+  type UpdateTeamInput,
+  type AddTeamMembersInput,
+  type CreateTaskListInput,
+  type UpdateTaskListInput,
+  type CreatePhaseInput,
+  type UpdatePhaseInput,
+  type CreateIssueInput,
+  type UpdateIssueInput,
+  type CreateForumInput,
+  type UpdateForumInput,
+  type CreateEventInput,
+  type UpdateEventInput,
+  type UploadAttachmentInput,
+  type UploadDocumentInput,
+  type UpdateDocumentInput,
+  type CreateDocumentFolderInput,
+  type UpdateDocumentFolderInput,
+  type CreateCommentInput,
+  type UpdateCommentInput,
+  type AddFollowersInput,
+  type CreateDashboardInput,
+  type UpdateDashboardInput,
+  type CreateWidgetInput,
+  type UpdateWidgetInput,
+  type ReportQueryInput,
+  type SearchQueryInput,
+  type TrashFilterInput,
+  type TrashableEntityType,
 } from "./types/index.js";
 import { createRateLimiter, type RateLimiterConfig } from "./utils/rate-limiter.js";
 import {
@@ -245,6 +375,42 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         }
         return response.projects[0];
       },
+
+      /**
+       * Create a new project
+       */
+      async create(data: CreateProjectInput): Promise<Project> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/`,
+          z.object({ projects: z.array(ProjectSchema) }),
+          { method: "POST", data }
+        );
+        return response.projects[0];
+      },
+
+      /**
+       * Update an existing project
+       */
+      async update(
+        projectId: string,
+        data: UpdateProjectInput
+      ): Promise<Project> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/`,
+          z.object({ projects: z.array(ProjectSchema) }),
+          { method: "PUT", data }
+        );
+        return response.projects[0];
+      },
+
+      /**
+       * Delete a project (moves to trash)
+       */
+      async delete(projectId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/`, {
+          method: "DELETE",
+        });
+      },
     },
 
     /**
@@ -329,6 +495,43 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         }
 
         return allTasks;
+      },
+
+      /**
+       * Create a new task in a project
+       */
+      async create(projectId: string, data: CreateTaskInput): Promise<Task> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasks/`,
+          z.object({ tasks: z.array(TaskSchema) }),
+          { method: "POST", data }
+        );
+        return response.tasks[0];
+      },
+
+      /**
+       * Update an existing task
+       */
+      async update(
+        projectId: string,
+        taskId: string,
+        data: UpdateTaskInput
+      ): Promise<Task> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasks/${taskId}/`,
+          z.object({ tasks: z.array(TaskSchema) }),
+          { method: "PUT", data }
+        );
+        return response.tasks[0];
+      },
+
+      /**
+       * Delete a task (moves to trash)
+       */
+      async delete(projectId: string, taskId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/tasks/${taskId}/`, {
+          method: "DELETE",
+        });
       },
 
       // Internal reference to projects API
@@ -441,6 +644,78 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         return allLogs;
       },
 
+      /**
+       * Create a time log for a task
+       */
+      async createForTask(
+        projectId: string,
+        data: CreateTaskTimeLogInput
+      ): Promise<TimeLog> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/logs/`,
+          z.object({ timelogs: z.object({ tasklogs: z.array(TimeLogSchema) }) }),
+          { method: "POST", data }
+        );
+        return response.timelogs.tasklogs[0];
+      },
+
+      /**
+       * Create a time log for a bug
+       */
+      async createForBug(
+        projectId: string,
+        data: CreateBugTimeLogInput
+      ): Promise<TimeLog> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/logs/`,
+          z.object({ timelogs: z.object({ buglogs: z.array(TimeLogSchema) }) }),
+          { method: "POST", data }
+        );
+        return response.timelogs.buglogs[0];
+      },
+
+      /**
+       * Create a general time log (not tied to task or bug)
+       */
+      async createGeneral(
+        projectId: string,
+        data: CreateGeneralTimeLogInput
+      ): Promise<TimeLog> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/logs/`,
+          z.object({ timelogs: z.object({ generallogs: z.array(TimeLogSchema) }) }),
+          { method: "POST", data }
+        );
+        return response.timelogs.generallogs[0];
+      },
+
+      /**
+       * Update a time log
+       */
+      async update(
+        projectId: string,
+        logId: string,
+        data: UpdateTimeLogInput
+      ): Promise<TimeLog> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/logs/${logId}/`,
+          z.object({ timelogs: z.object({ tasklogs: z.array(TimeLogSchema).optional(), buglogs: z.array(TimeLogSchema).optional(), generallogs: z.array(TimeLogSchema).optional() }) }),
+          { method: "PUT", data }
+        );
+        // Return whichever type was updated
+        const logs = response.timelogs.tasklogs || response.timelogs.buglogs || response.timelogs.generallogs || [];
+        return logs[0];
+      },
+
+      /**
+       * Delete a time log
+       */
+      async delete(projectId: string, logId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/logs/${logId}/`, {
+          method: "DELETE",
+        });
+      },
+
       // Internal reference to projects API
       _getProjectsRef: () => client.projects,
     },
@@ -523,6 +798,1881 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
           data: response.users,
           pageInfo: response.page_info,
         };
+      },
+
+      /**
+       * Invite a new user to the portal
+       */
+      async invite(data: InviteUserInput): Promise<User> {
+        const response = await requestWithValidation(
+          `${basePath}/users/`,
+          z.object({ users: z.array(UserSchema) }),
+          { method: "POST", data }
+        );
+        return response.users[0];
+      },
+
+      /**
+       * Add a user to a project
+       */
+      async addToProject(
+        projectId: string,
+        data: AddUserToProjectInput
+      ): Promise<User> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/users/`,
+          z.object({ users: z.array(UserSchema) }),
+          { method: "POST", data }
+        );
+        return response.users[0];
+      },
+
+      /**
+       * Update a user's details
+       */
+      async update(userId: string, data: UpdateUserInput): Promise<User> {
+        const response = await requestWithValidation(
+          `${basePath}/users/${userId}/`,
+          z.object({ users: z.array(UserSchema) }),
+          { method: "PUT", data }
+        );
+        return response.users[0];
+      },
+
+      /**
+       * Remove a user from the portal
+       */
+      async delete(userId: string): Promise<void> {
+        await request(`${basePath}/users/${userId}/`, {
+          method: "DELETE",
+        });
+      },
+
+      /**
+       * Remove a user from a project
+       */
+      async removeFromProject(
+        projectId: string,
+        userId: string
+      ): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/users/${userId}/`, {
+          method: "DELETE",
+        });
+      },
+    },
+
+    /**
+     * Tags API
+     */
+    tags: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Tag>> {
+        const response = await requestWithValidation(
+          `${basePath}/tags/`,
+          TagListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.tags, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Tag[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Tag, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(tagId: string): Promise<Tag> {
+        const response = await requestWithValidation(
+          `${basePath}/tags/${tagId}/`,
+          z.object({ tags: z.array(TagSchema) })
+        );
+        if (response.tags.length === 0) {
+          throw new ZohoProjectsError(`Tag not found: ${tagId}`, 404);
+        }
+        return response.tags[0];
+      },
+
+      async create(data: CreateTagInput): Promise<Tag> {
+        const response = await requestWithValidation(
+          `${basePath}/tags/`,
+          z.object({ tags: z.array(TagSchema) }),
+          { method: "POST", data }
+        );
+        return response.tags[0];
+      },
+
+      async update(tagId: string, data: UpdateTagInput): Promise<Tag> {
+        const response = await requestWithValidation(
+          `${basePath}/tags/${tagId}/`,
+          z.object({ tags: z.array(TagSchema) }),
+          { method: "PUT", data }
+        );
+        return response.tags[0];
+      },
+
+      async delete(tagId: string): Promise<void> {
+        await request(`${basePath}/tags/${tagId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Roles API
+     */
+    roles: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Role>> {
+        const response = await requestWithValidation(
+          `${basePath}/roles/`,
+          RoleListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.roles, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Role[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Role, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(roleId: string): Promise<Role> {
+        const response = await requestWithValidation(
+          `${basePath}/roles/${roleId}/`,
+          z.object({ roles: z.array(RoleSchema) })
+        );
+        if (response.roles.length === 0) {
+          throw new ZohoProjectsError(`Role not found: ${roleId}`, 404);
+        }
+        return response.roles[0];
+      },
+
+      async create(data: CreateRoleInput): Promise<Role> {
+        const response = await requestWithValidation(
+          `${basePath}/roles/`,
+          z.object({ roles: z.array(RoleSchema) }),
+          { method: "POST", data }
+        );
+        return response.roles[0];
+      },
+
+      async update(roleId: string, data: UpdateRoleInput): Promise<Role> {
+        const response = await requestWithValidation(
+          `${basePath}/roles/${roleId}/`,
+          z.object({ roles: z.array(RoleSchema) }),
+          { method: "PUT", data }
+        );
+        return response.roles[0];
+      },
+
+      async delete(roleId: string): Promise<void> {
+        await request(`${basePath}/roles/${roleId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Profiles API
+     */
+    profiles: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Profile>> {
+        const response = await requestWithValidation(
+          `${basePath}/profiles/`,
+          ProfileListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.profiles, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Profile[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Profile, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(profileId: string): Promise<Profile> {
+        const response = await requestWithValidation(
+          `${basePath}/profiles/${profileId}/`,
+          z.object({ profiles: z.array(ProfileSchema) })
+        );
+        if (response.profiles.length === 0) {
+          throw new ZohoProjectsError(`Profile not found: ${profileId}`, 404);
+        }
+        return response.profiles[0];
+      },
+
+      async create(data: CreateProfileInput): Promise<Profile> {
+        const response = await requestWithValidation(
+          `${basePath}/profiles/`,
+          z.object({ profiles: z.array(ProfileSchema) }),
+          { method: "POST", data }
+        );
+        return response.profiles[0];
+      },
+
+      async update(profileId: string, data: UpdateProfileInput): Promise<Profile> {
+        const response = await requestWithValidation(
+          `${basePath}/profiles/${profileId}/`,
+          z.object({ profiles: z.array(ProfileSchema) }),
+          { method: "PUT", data }
+        );
+        return response.profiles[0];
+      },
+
+      async delete(profileId: string): Promise<void> {
+        await request(`${basePath}/profiles/${profileId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Clients API
+     */
+    clients: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Client>> {
+        const response = await requestWithValidation(
+          `${basePath}/clients/`,
+          ClientListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.clients, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Client[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Client, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(clientId: string): Promise<Client> {
+        const response = await requestWithValidation(
+          `${basePath}/clients/${clientId}/`,
+          z.object({ clients: z.array(ClientSchema) })
+        );
+        if (response.clients.length === 0) {
+          throw new ZohoProjectsError(`Client not found: ${clientId}`, 404);
+        }
+        return response.clients[0];
+      },
+
+      async create(data: CreateClientInput): Promise<Client> {
+        const response = await requestWithValidation(
+          `${basePath}/clients/`,
+          z.object({ clients: z.array(ClientSchema) }),
+          { method: "POST", data }
+        );
+        return response.clients[0];
+      },
+
+      async update(clientId: string, data: UpdateClientInput): Promise<Client> {
+        const response = await requestWithValidation(
+          `${basePath}/clients/${clientId}/`,
+          z.object({ clients: z.array(ClientSchema) }),
+          { method: "PUT", data }
+        );
+        return response.clients[0];
+      },
+
+      async delete(clientId: string): Promise<void> {
+        await request(`${basePath}/clients/${clientId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Contacts API
+     */
+    contacts: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Contact>> {
+        const response = await requestWithValidation(
+          `${basePath}/contacts/`,
+          ContactListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.contacts, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Contact[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Contact, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(contactId: string): Promise<Contact> {
+        const response = await requestWithValidation(
+          `${basePath}/contacts/${contactId}/`,
+          z.object({ contacts: z.array(ContactSchema) })
+        );
+        if (response.contacts.length === 0) {
+          throw new ZohoProjectsError(`Contact not found: ${contactId}`, 404);
+        }
+        return response.contacts[0];
+      },
+
+      async create(data: CreateContactInput): Promise<Contact> {
+        const response = await requestWithValidation(
+          `${basePath}/contacts/`,
+          z.object({ contacts: z.array(ContactSchema) }),
+          { method: "POST", data }
+        );
+        return response.contacts[0];
+      },
+
+      async update(contactId: string, data: UpdateContactInput): Promise<Contact> {
+        const response = await requestWithValidation(
+          `${basePath}/contacts/${contactId}/`,
+          z.object({ contacts: z.array(ContactSchema) }),
+          { method: "PUT", data }
+        );
+        return response.contacts[0];
+      },
+
+      async delete(contactId: string): Promise<void> {
+        await request(`${basePath}/contacts/${contactId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Project Groups API
+     */
+    groups: {
+      async list(params?: ListParams): Promise<PaginatedResponse<ProjectGroup>> {
+        const response = await requestWithValidation(
+          `${basePath}/groups/`,
+          ProjectGroupListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.groups, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<ProjectGroup[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<ProjectGroup, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(groupId: string): Promise<ProjectGroup> {
+        const response = await requestWithValidation(
+          `${basePath}/groups/${groupId}/`,
+          z.object({ groups: z.array(ProjectGroupSchema) })
+        );
+        if (response.groups.length === 0) {
+          throw new ZohoProjectsError(`Project group not found: ${groupId}`, 404);
+        }
+        return response.groups[0];
+      },
+
+      async create(data: CreateProjectGroupInput): Promise<ProjectGroup> {
+        const response = await requestWithValidation(
+          `${basePath}/groups/`,
+          z.object({ groups: z.array(ProjectGroupSchema) }),
+          { method: "POST", data }
+        );
+        return response.groups[0];
+      },
+
+      async update(groupId: string, data: UpdateProjectGroupInput): Promise<ProjectGroup> {
+        const response = await requestWithValidation(
+          `${basePath}/groups/${groupId}/`,
+          z.object({ groups: z.array(ProjectGroupSchema) }),
+          { method: "PUT", data }
+        );
+        return response.groups[0];
+      },
+
+      async delete(groupId: string): Promise<void> {
+        await request(`${basePath}/groups/${groupId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Leaves API
+     */
+    leaves: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Leave>> {
+        const response = await requestWithValidation(
+          `${basePath}/leaves/`,
+          LeaveListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.leaves, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Leave[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Leave, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(leaveId: string): Promise<Leave> {
+        const response = await requestWithValidation(
+          `${basePath}/leaves/${leaveId}/`,
+          z.object({ leaves: z.array(LeaveSchema) })
+        );
+        if (response.leaves.length === 0) {
+          throw new ZohoProjectsError(`Leave not found: ${leaveId}`, 404);
+        }
+        return response.leaves[0];
+      },
+
+      async create(data: CreateLeaveInput): Promise<Leave> {
+        const response = await requestWithValidation(
+          `${basePath}/leaves/`,
+          z.object({ leaves: z.array(LeaveSchema) }),
+          { method: "POST", data }
+        );
+        return response.leaves[0];
+      },
+
+      async update(leaveId: string, data: UpdateLeaveInput): Promise<Leave> {
+        const response = await requestWithValidation(
+          `${basePath}/leaves/${leaveId}/`,
+          z.object({ leaves: z.array(LeaveSchema) }),
+          { method: "PUT", data }
+        );
+        return response.leaves[0];
+      },
+
+      async delete(leaveId: string): Promise<void> {
+        await request(`${basePath}/leaves/${leaveId}/`, { method: "DELETE" });
+      },
+    },
+
+    /**
+     * Teams API
+     */
+    teams: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Team>> {
+        const response = await requestWithValidation(
+          `${basePath}/teams/`,
+          TeamListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.teams, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Team[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(options?: AutoPaginateOptions): AsyncGenerator<Team, void, unknown> {
+        return autoPaginate((index, range) => this.list({ index, range }), options);
+      },
+
+      async get(teamId: string): Promise<Team> {
+        const response = await requestWithValidation(
+          `${basePath}/teams/${teamId}/`,
+          z.object({ teams: z.array(TeamSchema) })
+        );
+        if (response.teams.length === 0) {
+          throw new ZohoProjectsError(`Team not found: ${teamId}`, 404);
+        }
+        return response.teams[0];
+      },
+
+      async create(data: CreateTeamInput): Promise<Team> {
+        const response = await requestWithValidation(
+          `${basePath}/teams/`,
+          z.object({ teams: z.array(TeamSchema) }),
+          { method: "POST", data }
+        );
+        return response.teams[0];
+      },
+
+      async update(teamId: string, data: UpdateTeamInput): Promise<Team> {
+        const response = await requestWithValidation(
+          `${basePath}/teams/${teamId}/`,
+          z.object({ teams: z.array(TeamSchema) }),
+          { method: "PUT", data }
+        );
+        return response.teams[0];
+      },
+
+      async delete(teamId: string): Promise<void> {
+        await request(`${basePath}/teams/${teamId}/`, { method: "DELETE" });
+      },
+
+      async addMembers(teamId: string, data: AddTeamMembersInput): Promise<Team> {
+        const response = await requestWithValidation(
+          `${basePath}/teams/${teamId}/members/`,
+          z.object({ teams: z.array(TeamSchema) }),
+          { method: "POST", data }
+        );
+        return response.teams[0];
+      },
+
+      async removeMember(teamId: string, userId: string): Promise<void> {
+        await request(`${basePath}/teams/${teamId}/members/${userId}/`, {
+          method: "DELETE",
+        });
+      },
+    },
+
+    /**
+     * Task Lists API (project-scoped)
+     */
+    tasklists: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<TaskList>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasklists/`,
+          TaskListListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.tasklists, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<TaskList[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<TaskList, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, tasklistId: string): Promise<TaskList> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasklists/${tasklistId}/`,
+          z.object({ tasklists: z.array(TaskListSchema) })
+        );
+        if (response.tasklists.length === 0) {
+          throw new ZohoProjectsError(`Task list not found: ${tasklistId}`, 404);
+        }
+        return response.tasklists[0];
+      },
+
+      async create(
+        projectId: string,
+        data: CreateTaskListInput
+      ): Promise<TaskList> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasklists/`,
+          z.object({ tasklists: z.array(TaskListSchema) }),
+          { method: "POST", data }
+        );
+        return response.tasklists[0];
+      },
+
+      async update(
+        projectId: string,
+        tasklistId: string,
+        data: UpdateTaskListInput
+      ): Promise<TaskList> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasklists/${tasklistId}/`,
+          z.object({ tasklists: z.array(TaskListSchema) }),
+          { method: "PUT", data }
+        );
+        return response.tasklists[0];
+      },
+
+      async delete(projectId: string, tasklistId: string): Promise<void> {
+        await request(
+          `${basePath}/projects/${projectId}/tasklists/${tasklistId}/`,
+          { method: "DELETE" }
+        );
+      },
+    },
+
+    /**
+     * Phases (Milestones) API (project-scoped)
+     * Note: Zoho calls these "milestones" in the API
+     */
+    phases: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Phase>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/milestones/`,
+          PhaseListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.milestones, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Phase[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Phase, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, phaseId: string): Promise<Phase> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/milestones/${phaseId}/`,
+          z.object({ milestones: z.array(PhaseSchema) })
+        );
+        if (response.milestones.length === 0) {
+          throw new ZohoProjectsError(`Phase not found: ${phaseId}`, 404);
+        }
+        return response.milestones[0];
+      },
+
+      async create(projectId: string, data: CreatePhaseInput): Promise<Phase> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/milestones/`,
+          z.object({ milestones: z.array(PhaseSchema) }),
+          { method: "POST", data }
+        );
+        return response.milestones[0];
+      },
+
+      async update(
+        projectId: string,
+        phaseId: string,
+        data: UpdatePhaseInput
+      ): Promise<Phase> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/milestones/${phaseId}/`,
+          z.object({ milestones: z.array(PhaseSchema) }),
+          { method: "PUT", data }
+        );
+        return response.milestones[0];
+      },
+
+      async delete(projectId: string, phaseId: string): Promise<void> {
+        await request(
+          `${basePath}/projects/${projectId}/milestones/${phaseId}/`,
+          { method: "DELETE" }
+        );
+      },
+    },
+
+    /**
+     * Issues (Bugs) API (project-scoped)
+     * Note: Zoho calls these "bugs" in the API
+     */
+    issues: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Issue>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/bugs/`,
+          IssueListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.bugs, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Issue[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Issue, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, issueId: string): Promise<Issue> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/bugs/${issueId}/`,
+          z.object({ bugs: z.array(IssueSchema) })
+        );
+        if (response.bugs.length === 0) {
+          throw new ZohoProjectsError(`Issue not found: ${issueId}`, 404);
+        }
+        return response.bugs[0];
+      },
+
+      async create(projectId: string, data: CreateIssueInput): Promise<Issue> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/bugs/`,
+          z.object({ bugs: z.array(IssueSchema) }),
+          { method: "POST", data }
+        );
+        return response.bugs[0];
+      },
+
+      async update(
+        projectId: string,
+        issueId: string,
+        data: UpdateIssueInput
+      ): Promise<Issue> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/bugs/${issueId}/`,
+          z.object({ bugs: z.array(IssueSchema) }),
+          { method: "PUT", data }
+        );
+        return response.bugs[0];
+      },
+
+      async delete(projectId: string, issueId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/bugs/${issueId}/`, {
+          method: "DELETE",
+        });
+      },
+    },
+
+    /**
+     * Forums (Discussions) API (project-scoped)
+     */
+    forums: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Forum>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/forums/`,
+          ForumListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.forums, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Forum[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Forum, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, forumId: string): Promise<Forum> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/forums/${forumId}/`,
+          z.object({ forums: z.array(ForumSchema) })
+        );
+        if (response.forums.length === 0) {
+          throw new ZohoProjectsError(`Forum not found: ${forumId}`, 404);
+        }
+        return response.forums[0];
+      },
+
+      async create(projectId: string, data: CreateForumInput): Promise<Forum> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/forums/`,
+          z.object({ forums: z.array(ForumSchema) }),
+          { method: "POST", data }
+        );
+        return response.forums[0];
+      },
+
+      async update(
+        projectId: string,
+        forumId: string,
+        data: UpdateForumInput
+      ): Promise<Forum> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/forums/${forumId}/`,
+          z.object({ forums: z.array(ForumSchema) }),
+          { method: "PUT", data }
+        );
+        return response.forums[0];
+      },
+
+      async delete(projectId: string, forumId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/forums/${forumId}/`, {
+          method: "DELETE",
+        });
+      },
+    },
+
+    /**
+     * Events (Calendar) API (project-scoped)
+     */
+    events: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Event>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/events/`,
+          EventListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.events, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Event[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Event, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, eventId: string): Promise<Event> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/events/${eventId}/`,
+          z.object({ events: z.array(EventSchema) })
+        );
+        if (response.events.length === 0) {
+          throw new ZohoProjectsError(`Event not found: ${eventId}`, 404);
+        }
+        return response.events[0];
+      },
+
+      async create(projectId: string, data: CreateEventInput): Promise<Event> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/events/`,
+          z.object({ events: z.array(EventSchema) }),
+          { method: "POST", data }
+        );
+        return response.events[0];
+      },
+
+      async update(
+        projectId: string,
+        eventId: string,
+        data: UpdateEventInput
+      ): Promise<Event> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/events/${eventId}/`,
+          z.object({ events: z.array(EventSchema) }),
+          { method: "PUT", data }
+        );
+        return response.events[0];
+      },
+
+      async delete(projectId: string, eventId: string): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/events/${eventId}/`, {
+          method: "DELETE",
+        });
+      },
+    },
+
+    /**
+     * Attachments API (project-scoped)
+     * Note: Upload requires multipart/form-data
+     */
+    attachments: {
+      async list(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Attachment>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/attachments/`,
+          AttachmentListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.attachments, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Attachment[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Attachment, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, attachmentId: string): Promise<Attachment> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/attachments/${attachmentId}/`,
+          z.object({ attachments: z.array(AttachmentSchema) })
+        );
+        if (response.attachments.length === 0) {
+          throw new ZohoProjectsError(
+            `Attachment not found: ${attachmentId}`,
+            404
+          );
+        }
+        return response.attachments[0];
+      },
+
+      /**
+       * Upload an attachment
+       * @param projectId - Project ID
+       * @param file - File buffer or stream
+       * @param filename - Original filename
+       * @param options - Additional options
+       */
+      async upload(
+        projectId: string,
+        file: Buffer | NodeJS.ReadableStream,
+        filename: string,
+        options?: UploadAttachmentInput
+      ): Promise<Attachment> {
+        const FormData = (await import("form-data")).default;
+        const formData = new FormData();
+        formData.append("uploaddoc", file, filename);
+        if (options?.name) formData.append("name", options.name);
+        if (options?.description)
+          formData.append("description", options.description);
+        if (options?.entity_type)
+          formData.append("entity_type", options.entity_type);
+        if (options?.entity_id) formData.append("entity_id", options.entity_id);
+
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/attachments/`,
+          z.object({ attachments: z.array(AttachmentSchema) }),
+          {
+            method: "POST",
+            data: formData,
+            headers: formData.getHeaders(),
+          }
+        );
+        return response.attachments[0];
+      },
+
+      async delete(projectId: string, attachmentId: string): Promise<void> {
+        await request(
+          `${basePath}/projects/${projectId}/attachments/${attachmentId}/`,
+          { method: "DELETE" }
+        );
+      },
+    },
+
+    /**
+     * Documents API (project-scoped)
+     */
+    documents: {
+      async list(
+        projectId: string,
+        params?: ListParams & { folder_id?: string }
+      ): Promise<PaginatedResponse<Document>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/documents/`,
+          DocumentListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+              folder_id: params?.folder_id,
+            },
+          }
+        );
+        return { data: response.documents, pageInfo: response.page_info };
+      },
+
+      async listAll(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): Promise<Document[]> {
+        return collectAll(this.iterate(projectId, options));
+      },
+
+      iterate(
+        projectId: string,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Document, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list(projectId, { index, range }),
+          options
+        );
+      },
+
+      async get(projectId: string, documentId: string): Promise<Document> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/documents/${documentId}/`,
+          z.object({ documents: z.array(DocumentSchema) })
+        );
+        if (response.documents.length === 0) {
+          throw new ZohoProjectsError(`Document not found: ${documentId}`, 404);
+        }
+        return response.documents[0];
+      },
+
+      /**
+       * Upload a document
+       */
+      async upload(
+        projectId: string,
+        file: Buffer | NodeJS.ReadableStream,
+        filename: string,
+        options?: UploadDocumentInput
+      ): Promise<Document> {
+        const FormData = (await import("form-data")).default;
+        const formData = new FormData();
+        formData.append("uploaddoc", file, filename);
+        if (options?.name) formData.append("name", options.name);
+        if (options?.description)
+          formData.append("description", options.description);
+        if (options?.folder_id) formData.append("folder_id", options.folder_id);
+
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/documents/`,
+          z.object({ documents: z.array(DocumentSchema) }),
+          {
+            method: "POST",
+            data: formData,
+            headers: formData.getHeaders(),
+          }
+        );
+        return response.documents[0];
+      },
+
+      async update(
+        projectId: string,
+        documentId: string,
+        data: UpdateDocumentInput
+      ): Promise<Document> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/documents/${documentId}/`,
+          z.object({ documents: z.array(DocumentSchema) }),
+          { method: "PUT", data }
+        );
+        return response.documents[0];
+      },
+
+      async delete(projectId: string, documentId: string): Promise<void> {
+        await request(
+          `${basePath}/projects/${projectId}/documents/${documentId}/`,
+          { method: "DELETE" }
+        );
+      },
+
+      // Folder operations
+      folders: {
+        async list(
+          projectId: string,
+          params?: ListParams
+        ): Promise<PaginatedResponse<DocumentFolder>> {
+          const response = await requestWithValidation(
+            `${basePath}/projects/${projectId}/folders/`,
+            DocumentFolderListResponseSchema,
+            {
+              params: {
+                index: params?.index ?? 0,
+                range: params?.range ?? DEFAULT_PAGE_SIZE,
+              },
+            }
+          );
+          return { data: response.folders, pageInfo: response.page_info };
+        },
+
+        async get(
+          projectId: string,
+          folderId: string
+        ): Promise<DocumentFolder> {
+          const response = await requestWithValidation(
+            `${basePath}/projects/${projectId}/folders/${folderId}/`,
+            z.object({ folders: z.array(DocumentFolderSchema) })
+          );
+          if (response.folders.length === 0) {
+            throw new ZohoProjectsError(`Folder not found: ${folderId}`, 404);
+          }
+          return response.folders[0];
+        },
+
+        async create(
+          projectId: string,
+          data: CreateDocumentFolderInput
+        ): Promise<DocumentFolder> {
+          const response = await requestWithValidation(
+            `${basePath}/projects/${projectId}/folders/`,
+            z.object({ folders: z.array(DocumentFolderSchema) }),
+            { method: "POST", data }
+          );
+          return response.folders[0];
+        },
+
+        async update(
+          projectId: string,
+          folderId: string,
+          data: UpdateDocumentFolderInput
+        ): Promise<DocumentFolder> {
+          const response = await requestWithValidation(
+            `${basePath}/projects/${projectId}/folders/${folderId}/`,
+            z.object({ folders: z.array(DocumentFolderSchema) }),
+            { method: "PUT", data }
+          );
+          return response.folders[0];
+        },
+
+        async delete(projectId: string, folderId: string): Promise<void> {
+          await request(
+            `${basePath}/projects/${projectId}/folders/${folderId}/`,
+            { method: "DELETE" }
+          );
+        },
+      },
+    },
+
+    /**
+     * Comments API (polymorphic - attaches to multiple entity types)
+     * Supports: tasks, bugs, forums, milestones, events
+     */
+    comments: {
+      /**
+       * Get comments for a task
+       */
+      forTask(projectId: string, taskId: string) {
+        return this._forEntity("tasks", projectId, taskId);
+      },
+
+      /**
+       * Get comments for an issue (bug)
+       */
+      forIssue(projectId: string, issueId: string) {
+        return this._forEntity("bugs", projectId, issueId);
+      },
+
+      /**
+       * Get comments for a forum
+       */
+      forForum(projectId: string, forumId: string) {
+        return this._forEntity("forums", projectId, forumId);
+      },
+
+      /**
+       * Get comments for a phase (milestone)
+       */
+      forPhase(projectId: string, phaseId: string) {
+        return this._forEntity("milestones", projectId, phaseId);
+      },
+
+      /**
+       * Get comments for an event
+       */
+      forEvent(projectId: string, eventId: string) {
+        return this._forEntity("events", projectId, eventId);
+      },
+
+      /**
+       * Internal method to create comment operations for any entity type
+       */
+      _forEntity(
+        entityType: CommentableEntityType,
+        projectId: string,
+        entityId: string
+      ) {
+        const commentsPath = `${basePath}/projects/${projectId}/${entityType}/${entityId}/comments`;
+
+        return {
+          async list(params?: ListParams): Promise<PaginatedResponse<Comment>> {
+            const response = await requestWithValidation(
+              `${commentsPath}/`,
+              CommentListResponseSchema,
+              {
+                params: {
+                  index: params?.index ?? 0,
+                  range: params?.range ?? DEFAULT_PAGE_SIZE,
+                },
+              }
+            );
+            return { data: response.comments, pageInfo: response.page_info };
+          },
+
+          async listAll(options?: AutoPaginateOptions): Promise<Comment[]> {
+            return collectAll(this.iterate(options));
+          },
+
+          iterate(
+            options?: AutoPaginateOptions
+          ): AsyncGenerator<Comment, void, unknown> {
+            return autoPaginate(
+              (index, range) => this.list({ index, range }),
+              options
+            );
+          },
+
+          async get(commentId: string): Promise<Comment> {
+            const response = await requestWithValidation(
+              `${commentsPath}/${commentId}/`,
+              z.object({ comments: z.array(CommentSchema) })
+            );
+            if (response.comments.length === 0) {
+              throw new ZohoProjectsError(
+                `Comment not found: ${commentId}`,
+                404
+              );
+            }
+            return response.comments[0];
+          },
+
+          async create(data: CreateCommentInput): Promise<Comment> {
+            const response = await requestWithValidation(
+              `${commentsPath}/`,
+              z.object({ comments: z.array(CommentSchema) }),
+              { method: "POST", data }
+            );
+            return response.comments[0];
+          },
+
+          async update(
+            commentId: string,
+            data: UpdateCommentInput
+          ): Promise<Comment> {
+            const response = await requestWithValidation(
+              `${commentsPath}/${commentId}/`,
+              z.object({ comments: z.array(CommentSchema) }),
+              { method: "PUT", data }
+            );
+            return response.comments[0];
+          },
+
+          async delete(commentId: string): Promise<void> {
+            await request(`${commentsPath}/${commentId}/`, {
+              method: "DELETE",
+            });
+          },
+        };
+      },
+    },
+
+    /**
+     * Followers API (polymorphic - attaches to multiple entity types)
+     * Supports: tasks, bugs, forums, milestones, events
+     */
+    followers: {
+      /**
+       * Get followers for a task
+       */
+      forTask(projectId: string, taskId: string) {
+        return this._forEntity("tasks", projectId, taskId);
+      },
+
+      /**
+       * Get followers for an issue (bug)
+       */
+      forIssue(projectId: string, issueId: string) {
+        return this._forEntity("bugs", projectId, issueId);
+      },
+
+      /**
+       * Get followers for a forum
+       */
+      forForum(projectId: string, forumId: string) {
+        return this._forEntity("forums", projectId, forumId);
+      },
+
+      /**
+       * Get followers for a phase (milestone)
+       */
+      forPhase(projectId: string, phaseId: string) {
+        return this._forEntity("milestones", projectId, phaseId);
+      },
+
+      /**
+       * Get followers for an event
+       */
+      forEvent(projectId: string, eventId: string) {
+        return this._forEntity("events", projectId, eventId);
+      },
+
+      /**
+       * Internal method to create follower operations for any entity type
+       */
+      _forEntity(
+        entityType: FollowableEntityType,
+        projectId: string,
+        entityId: string
+      ) {
+        const followersPath = `${basePath}/projects/${projectId}/${entityType}/${entityId}/followers`;
+
+        return {
+          async list(
+            params?: ListParams
+          ): Promise<PaginatedResponse<Follower>> {
+            const response = await requestWithValidation(
+              `${followersPath}/`,
+              FollowerListResponseSchema,
+              {
+                params: {
+                  index: params?.index ?? 0,
+                  range: params?.range ?? DEFAULT_PAGE_SIZE,
+                },
+              }
+            );
+            return { data: response.followers, pageInfo: response.page_info };
+          },
+
+          async listAll(options?: AutoPaginateOptions): Promise<Follower[]> {
+            return collectAll(this.iterate(options));
+          },
+
+          iterate(
+            options?: AutoPaginateOptions
+          ): AsyncGenerator<Follower, void, unknown> {
+            return autoPaginate(
+              (index, range) => this.list({ index, range }),
+              options
+            );
+          },
+
+          async add(data: AddFollowersInput): Promise<Follower[]> {
+            const response = await requestWithValidation(
+              `${followersPath}/`,
+              z.object({ followers: z.array(FollowerSchema) }),
+              { method: "POST", data }
+            );
+            return response.followers;
+          },
+
+          async remove(userId: string): Promise<void> {
+            await request(`${followersPath}/${userId}/`, {
+              method: "DELETE",
+            });
+          },
+
+          /**
+           * Follow this entity as the current user
+           */
+          async follow(): Promise<void> {
+            await request(`${followersPath}/me/`, {
+              method: "POST",
+            });
+          },
+
+          /**
+           * Unfollow this entity as the current user
+           */
+          async unfollow(): Promise<void> {
+            await request(`${followersPath}/me/`, {
+              method: "DELETE",
+            });
+          },
+        };
+      },
+    },
+
+    /**
+     * Dashboards API
+     */
+    dashboards: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Dashboard>> {
+        const response = await requestWithValidation(
+          `${basePath}/dashboards/`,
+          DashboardListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.dashboards, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Dashboard[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Dashboard, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list({ index, range }),
+          options
+        );
+      },
+
+      async get(dashboardId: string): Promise<Dashboard> {
+        const response = await requestWithValidation(
+          `${basePath}/dashboards/${dashboardId}/`,
+          z.object({ dashboards: z.array(DashboardSchema) })
+        );
+        if (response.dashboards.length === 0) {
+          throw new ZohoProjectsError(
+            `Dashboard not found: ${dashboardId}`,
+            404
+          );
+        }
+        return response.dashboards[0];
+      },
+
+      async create(data: CreateDashboardInput): Promise<Dashboard> {
+        const response = await requestWithValidation(
+          `${basePath}/dashboards/`,
+          z.object({ dashboards: z.array(DashboardSchema) }),
+          { method: "POST", data }
+        );
+        return response.dashboards[0];
+      },
+
+      async update(
+        dashboardId: string,
+        data: UpdateDashboardInput
+      ): Promise<Dashboard> {
+        const response = await requestWithValidation(
+          `${basePath}/dashboards/${dashboardId}/`,
+          z.object({ dashboards: z.array(DashboardSchema) }),
+          { method: "PUT", data }
+        );
+        return response.dashboards[0];
+      },
+
+      async delete(dashboardId: string): Promise<void> {
+        await request(`${basePath}/dashboards/${dashboardId}/`, {
+          method: "DELETE",
+        });
+      },
+
+      /**
+       * Widget operations for a specific dashboard
+       */
+      widgets(dashboardId: string) {
+        const widgetsPath = `${basePath}/dashboards/${dashboardId}/widgets`;
+
+        return {
+          async list(params?: ListParams): Promise<PaginatedResponse<Widget>> {
+            const response = await requestWithValidation(
+              `${widgetsPath}/`,
+              WidgetListResponseSchema,
+              {
+                params: {
+                  index: params?.index ?? 0,
+                  range: params?.range ?? DEFAULT_PAGE_SIZE,
+                },
+              }
+            );
+            return { data: response.widgets, pageInfo: response.page_info };
+          },
+
+          async listAll(options?: AutoPaginateOptions): Promise<Widget[]> {
+            return collectAll(this.iterate(options));
+          },
+
+          iterate(
+            options?: AutoPaginateOptions
+          ): AsyncGenerator<Widget, void, unknown> {
+            return autoPaginate(
+              (index, range) => this.list({ index, range }),
+              options
+            );
+          },
+
+          async get(widgetId: string): Promise<Widget> {
+            const response = await requestWithValidation(
+              `${widgetsPath}/${widgetId}/`,
+              z.object({ widgets: z.array(WidgetSchema) })
+            );
+            if (response.widgets.length === 0) {
+              throw new ZohoProjectsError(`Widget not found: ${widgetId}`, 404);
+            }
+            return response.widgets[0];
+          },
+
+          async create(data: CreateWidgetInput): Promise<Widget> {
+            const response = await requestWithValidation(
+              `${widgetsPath}/`,
+              z.object({ widgets: z.array(WidgetSchema) }),
+              { method: "POST", data }
+            );
+            return response.widgets[0];
+          },
+
+          async update(
+            widgetId: string,
+            data: UpdateWidgetInput
+          ): Promise<Widget> {
+            const response = await requestWithValidation(
+              `${widgetsPath}/${widgetId}/`,
+              z.object({ widgets: z.array(WidgetSchema) }),
+              { method: "PUT", data }
+            );
+            return response.widgets[0];
+          },
+
+          async delete(widgetId: string): Promise<void> {
+            await request(`${widgetsPath}/${widgetId}/`, {
+              method: "DELETE",
+            });
+          },
+        };
+      },
+    },
+
+    /**
+     * Reports API
+     * Reports are typically read-only with specialized query parameters
+     */
+    reports: {
+      async list(params?: ListParams): Promise<PaginatedResponse<Report>> {
+        const response = await requestWithValidation(
+          `${basePath}/reports/`,
+          ReportListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.reports, pageInfo: response.page_info };
+      },
+
+      async listAll(options?: AutoPaginateOptions): Promise<Report[]> {
+        return collectAll(this.iterate(options));
+      },
+
+      iterate(
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<Report, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list({ index, range }),
+          options
+        );
+      },
+
+      async get(reportId: string): Promise<Report> {
+        const response = await requestWithValidation(
+          `${basePath}/reports/${reportId}/`,
+          z.object({ reports: z.array(ReportSchema) })
+        );
+        if (response.reports.length === 0) {
+          throw new ZohoProjectsError(`Report not found: ${reportId}`, 404);
+        }
+        return response.reports[0];
+      },
+
+      /**
+       * Execute a report and get its data
+       */
+      async execute(
+        reportId: string,
+        query?: ReportQueryInput & ListParams
+      ): Promise<ReportDataResponse> {
+        const response = await requestWithValidation(
+          `${basePath}/reports/${reportId}/data/`,
+          ReportDataResponseSchema,
+          {
+            params: {
+              index: query?.index ?? 0,
+              range: query?.range ?? DEFAULT_PAGE_SIZE,
+              sort_by: query?.sort_by,
+              sort_order: query?.sort_order,
+              group_by: query?.group_by,
+              start_date: query?.start_date,
+              end_date: query?.end_date,
+            },
+          }
+        );
+        return response;
+      },
+
+      /**
+       * List reports for a specific project
+       */
+      async listForProject(
+        projectId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Report>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/reports/`,
+          ReportListResponseSchema,
+          {
+            params: {
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return { data: response.reports, pageInfo: response.page_info };
+      },
+    },
+
+    /**
+     * Search API
+     * Global search across entities
+     */
+    search: {
+      /**
+       * Search across all entities
+       */
+      async query(
+        query: SearchQueryInput & ListParams
+      ): Promise<PaginatedResponse<SearchResult>> {
+        const response = await requestWithValidation(
+          `${basePath}/search/`,
+          SearchResponseSchema,
+          {
+            params: {
+              search_term: query.search_term,
+              entity_type: query.entity_type,
+              project_id: query.project_id,
+              status: query.status,
+              owner: query.owner,
+              start_date: query.start_date,
+              end_date: query.end_date,
+              index: query.index ?? 0,
+              range: query.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        const results = response.results || response.search_results || [];
+        return { data: results, pageInfo: response.page_info };
+      },
+
+      /**
+       * Search within a specific project
+       */
+      async inProject(
+        projectId: string,
+        query: Omit<SearchQueryInput, "project_id"> & ListParams
+      ): Promise<PaginatedResponse<SearchResult>> {
+        return this.query({ ...query, project_id: projectId });
+      },
+
+      /**
+       * Search for tasks
+       */
+      async tasks(
+        searchTerm: string,
+        params?: Omit<SearchQueryInput, "search_term" | "entity_type"> &
+          ListParams
+      ): Promise<PaginatedResponse<SearchResult>> {
+        return this.query({
+          search_term: searchTerm,
+          entity_type: "task",
+          ...params,
+        });
+      },
+
+      /**
+       * Search for issues (bugs)
+       */
+      async issues(
+        searchTerm: string,
+        params?: Omit<SearchQueryInput, "search_term" | "entity_type"> &
+          ListParams
+      ): Promise<PaginatedResponse<SearchResult>> {
+        return this.query({
+          search_term: searchTerm,
+          entity_type: "bug",
+          ...params,
+        });
+      },
+
+      /**
+       * Search for projects
+       */
+      async projects(
+        searchTerm: string,
+        params?: Omit<SearchQueryInput, "search_term" | "entity_type"> &
+          ListParams
+      ): Promise<PaginatedResponse<SearchResult>> {
+        return this.query({
+          search_term: searchTerm,
+          entity_type: "project",
+          ...params,
+        });
+      },
+    },
+
+    /**
+     * Trash API
+     * Manage deleted items
+     */
+    trash: {
+      /**
+       * List items in trash
+       */
+      async list(
+        params?: TrashFilterInput & ListParams
+      ): Promise<PaginatedResponse<TrashItem>> {
+        const response = await requestWithValidation(
+          `${basePath}/trash/`,
+          TrashListResponseSchema,
+          {
+            params: {
+              entity_type: params?.entity_type,
+              project_id: params?.project_id,
+              deleted_by: params?.deleted_by,
+              index: params?.index ?? 0,
+              range: params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        const items = response.trash || response.deleted_items || [];
+        return { data: items, pageInfo: response.page_info };
+      },
+
+      /**
+       * List all items in trash with auto-pagination
+       */
+      async listAll(
+        params?: TrashFilterInput,
+        options?: AutoPaginateOptions
+      ): Promise<TrashItem[]> {
+        return collectAll(this.iterate(params, options));
+      },
+
+      /**
+       * Iterate over all trash items with auto-pagination
+       */
+      iterate(
+        params?: TrashFilterInput,
+        options?: AutoPaginateOptions
+      ): AsyncGenerator<TrashItem, void, unknown> {
+        return autoPaginate(
+          (index, range) => this.list({ ...params, index, range }),
+          options
+        );
+      },
+
+      /**
+       * Restore an item from trash
+       */
+      async restore(
+        entityType: TrashableEntityType,
+        itemId: string
+      ): Promise<TrashRestoreResponse> {
+        const response = await requestWithValidation(
+          `${basePath}/trash/${entityType}/${itemId}/restore/`,
+          TrashRestoreResponseSchema,
+          { method: "POST" }
+        );
+        return response;
+      },
+
+      /**
+       * Permanently delete an item from trash
+       */
+      async permanentDelete(
+        entityType: TrashableEntityType,
+        itemId: string
+      ): Promise<void> {
+        await request(`${basePath}/trash/${entityType}/${itemId}/`, {
+          method: "DELETE",
+        });
+      },
+
+      /**
+       * Empty trash (permanently delete all items)
+       */
+      async empty(entityType?: TrashableEntityType): Promise<void> {
+        const path = entityType
+          ? `${basePath}/trash/${entityType}/`
+          : `${basePath}/trash/`;
+        await request(path, { method: "DELETE" });
+      },
+
+      /**
+       * List trash for a specific project
+       */
+      async listForProject(
+        projectId: string,
+        params?: Omit<TrashFilterInput, "project_id"> & ListParams
+      ): Promise<PaginatedResponse<TrashItem>> {
+        return this.list({ ...params, project_id: projectId });
       },
     },
 
