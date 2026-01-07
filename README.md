@@ -88,7 +88,7 @@ Zoho requires OAuth 2.0 with a refresh token. Here's how to get one:
 1. In API Console, select your client → **Generate Code** → **Self Client**
 2. Enter scope:
    ```
-   ZohoProjects.projects.READ,ZohoProjects.tasks.READ,ZohoProjects.timesheets.READ,ZohoProjects.users.READ,ZohoProjects.portals.READ
+   ZohoProjects.projects.ALL,ZohoProjects.tasks.ALL,ZohoProjects.timesheets.ALL,ZohoProjects.users.ALL,ZohoProjects.portals.ALL,ZohoProjects.bugs.ALL,ZohoProjects.events.ALL,ZohoProjects.forums.ALL,ZohoProjects.documents.ALL
    ```
 3. Click **Create** and copy the authorization code
 4. Exchange it for a refresh token (within 2 minutes):
@@ -134,6 +134,55 @@ const client = createZohoProjectsClient({
 | IN | `https://projectsapi.zoho.in` | `https://accounts.zoho.in` |
 | AU | `https://projectsapi.zoho.com.au` | `https://accounts.zoho.com.au` |
 
+## Available APIs
+
+The client provides access to 26 API namespaces:
+
+### Portal-Level APIs (no projectId required)
+
+| Namespace | Description |
+|-----------|-------------|
+| `projects` | Project management |
+| `users` | Portal users |
+| `tags` | Tags/labels |
+| `roles` | User roles |
+| `profiles` | Permission profiles |
+| `clients` | Client companies |
+| `contacts` | Client contacts |
+| `groups` | Project groups |
+| `leaves` | Leave requests |
+| `teams` | Team management |
+| `portals` | Portal information |
+| `modules` | Portal modules |
+| `dashboards` | Dashboards & widgets |
+| `reports` | Report execution |
+| `search` | Global search |
+| `trash` | Deleted items |
+
+### Project-Scoped APIs (require projectId)
+
+| Namespace | Description |
+|-----------|-------------|
+| `tasks` | Task management |
+| `tasklists` | Task list management |
+| `phases` | Project phases/milestones |
+| `issues` | Bug/issue tracking |
+| `forums` | Discussion forums |
+| `events` | Calendar events |
+| `timelogs` | Time tracking |
+| `timers` | Active timers |
+| `attachments` | File attachments |
+| `documents` | Project documents |
+| `blueprints` | Workflow blueprints |
+| `customviews` | Custom views |
+
+### Polymorphic APIs
+
+| Namespace | Description |
+|-----------|-------------|
+| `comments` | Comments on tasks, issues, forums |
+| `followers` | Followers on tasks, issues, forums |
+
 ## API Reference
 
 ### Projects
@@ -142,16 +191,19 @@ const client = createZohoProjectsClient({
 // List with pagination
 const { data, pageInfo } = await client.projects.list({ index: 0, range: 100 });
 
-// Get all projects
+// Get all projects (auto-pagination)
 const projects = await client.projects.listAll();
 
-// Get single project
-const project = await client.projects.get("project_id");
-
-// Iterate with auto-pagination
+// Iterate (memory-efficient)
 for await (const project of client.projects.iterate()) {
   console.log(project.name);
 }
+
+// CRUD operations
+const project = await client.projects.get("project_id");
+const newProject = await client.projects.create({ name: "My Project" });
+await client.projects.update("project_id", { name: "Updated Name" });
+await client.projects.delete("project_id");
 ```
 
 ### Tasks
@@ -163,11 +215,14 @@ const { data } = await client.tasks.list("project_id");
 // Get all tasks for a project
 const tasks = await client.tasks.listAll("project_id");
 
-// Get single task
-const task = await client.tasks.get("project_id", "task_id");
-
 // Get all tasks across all projects
 const allTasks = await client.tasks.listAllAcrossProjects();
+
+// CRUD operations
+const task = await client.tasks.get("project_id", "task_id");
+await client.tasks.create("project_id", { name: "New Task", tasklist_id: "list_id" });
+await client.tasks.update("project_id", "task_id", { status: "completed" });
+await client.tasks.delete("project_id", "task_id");
 ```
 
 ### Time Logs
@@ -179,35 +234,149 @@ Time logs require specific parameters:
 const { data } = await client.timelogs.list("project_id", {
   users_list: "all",              // "all" or comma-separated user IDs
   view_type: "month",             // "day", "week", "month", or "custom_date"
-  date: "12-14-2025",             // MM-DD-YYYY format
+  date: "01-15-2025",             // MM-DD-YYYY format
   bill_status: "All",             // "All", "Billable", or "Non Billable"
   component_type: "task",         // "task", "bug", or "general"
 });
 
-// Get all time logs for a project
-const logs = await client.timelogs.listAll("project_id", {
-  users_list: "all",
-  view_type: "month",
-  date: "12-14-2025",
-  bill_status: "All",
-  component_type: "task",
+// Create time logs
+await client.timelogs.createForTask("project_id", {
+  task_id: "task_id",
+  date: "01-15-2025",
+  hours: "2",
+  bill_status: "Billable",
+});
+
+await client.timelogs.createForBug("project_id", {
+  bug_id: "bug_id",
+  date: "01-15-2025",
+  hours: "1",
+  bill_status: "Non Billable",
+});
+
+await client.timelogs.createGeneral("project_id", {
+  name: "Meeting",
+  date: "01-15-2025",
+  hours: "1",
+  bill_status: "Non Billable",
 });
 ```
 
-### Users
+### Issues (Bugs)
 
 ```typescript
-// List portal users
-const { data } = await client.users.list();
+const { data } = await client.issues.list("project_id");
+const issue = await client.issues.get("project_id", "issue_id");
+await client.issues.create("project_id", { title: "Bug report" });
+await client.issues.update("project_id", "issue_id", { status: "fixed" });
+await client.issues.delete("project_id", "issue_id");
+```
 
-// Get all users
-const users = await client.users.listAll();
+### Comments (Polymorphic)
 
-// Get single user
-const user = await client.users.get("user_id");
+```typescript
+// Comments on tasks
+const taskComments = client.comments.forTask("project_id", "task_id");
+const { data } = await taskComments.list();
+await taskComments.create({ content: "Great work!" });
 
-// List users for a project
-const { data: projectUsers } = await client.users.listForProject("project_id");
+// Comments on issues
+const issueComments = client.comments.forIssue("project_id", "issue_id");
+await issueComments.list();
+
+// Comments on forums
+const forumComments = client.comments.forForum("project_id", "forum_id");
+await forumComments.list();
+```
+
+### Followers (Polymorphic)
+
+```typescript
+// Followers on tasks
+const taskFollowers = client.followers.forTask("project_id", "task_id");
+const { data } = await taskFollowers.list();
+await taskFollowers.add({ user_ids: ["user_1", "user_2"] });
+await taskFollowers.remove("user_id");
+
+// Followers on issues
+const issueFollowers = client.followers.forIssue("project_id", "issue_id");
+await issueFollowers.list();
+```
+
+### Search
+
+```typescript
+// Global search
+const results = await client.search.query({ search_term: "keyword" });
+
+// Search with filters
+const taskResults = await client.search.query({
+  search_term: "keyword",
+  entity_type: "task",
+});
+
+// Convenience methods
+await client.search.tasks("keyword");
+await client.search.issues("keyword");
+await client.search.projects("keyword");
+
+// Search within a project
+await client.search.inProject("project_id", { search_term: "keyword" });
+```
+
+### Trash
+
+```typescript
+// List deleted items
+const { data } = await client.trash.list();
+const projectTrash = await client.trash.list({ entity_type: "task" });
+
+// Restore from trash
+await client.trash.restore("task", "item_id");
+
+// Permanently delete
+await client.trash.permanentDelete("task", "item_id");
+
+// Empty trash
+await client.trash.empty();           // All items
+await client.trash.empty("task");     // Only tasks
+```
+
+### Timers
+
+```typescript
+// Get active timer for current user
+const timer = await client.timers.getActive("project_id");
+
+// Start/stop timer on a task
+await client.timers.startForTask("project_id", "task_id");
+await client.timers.stop("project_id");
+
+// Start/stop timer on a bug
+await client.timers.startForBug("project_id", "bug_id");
+```
+
+### Teams
+
+```typescript
+const { data } = await client.teams.list();
+const team = await client.teams.get("team_id");
+await client.teams.create({ name: "Engineering" });
+await client.teams.addMembers("team_id", { user_ids: ["user_1", "user_2"] });
+await client.teams.removeMember("team_id", "user_id");
+```
+
+### Dashboards & Widgets
+
+```typescript
+// Dashboards
+const { data } = await client.dashboards.list();
+const dashboard = await client.dashboards.get("dashboard_id");
+
+// Widgets within a dashboard
+const widgets = client.dashboards.widgets("dashboard_id");
+const { data: widgetList } = await widgets.list();
+await widgets.create({ name: "Task Chart", type: "chart" });
 ```
 
 ## Rate Limiting
