@@ -1,0 +1,47 @@
+import type { Leave } from "../../types/index.js";
+
+export const mockLeave: Leave = {
+  id: "leave_001",
+  id_string: "leave_001",
+  user_id: "user_001",
+  user_name: "John Doe",
+  user_email: "john@example.com",
+  leave_type: "Vacation",
+  leave_type_id: "lt_001",
+  reason: "Family vacation",
+  start_date: "01-15-2024",
+  start_date_long: 1705276800000,
+  end_date: "01-22-2024",
+  end_date_long: 1705881600000,
+  duration: 5,
+  half_day: false,
+  status: "approved",
+  approved_by: "user_002",
+  approved_time: "2024-01-10T10:00:00Z",
+  created_time: "2024-01-05T00:00:00Z",
+  created_time_long: 1704412800000,
+  last_modified_time: "2024-01-10T10:00:00Z",
+  last_modified_time_long: 1704880800000,
+};
+
+export const mockLeaves: Leave[] = [
+  mockLeave,
+  {
+    id: "leave_002",
+    id_string: "leave_002",
+    user_id: "user_003",
+    user_name: "Jane Smith",
+    user_email: "jane@example.com",
+    leave_type: "Sick Leave",
+    leave_type_id: "lt_002",
+    reason: "Medical appointment",
+    start_date: "01-20-2024",
+    start_date_long: 1705708800000,
+    end_date: "01-20-2024",
+    end_date_long: 1705708800000,
+    duration: 0.5,
+    half_day: true,
+    half_day_type: "first_half",
+    status: "pending",
+  },
+];
