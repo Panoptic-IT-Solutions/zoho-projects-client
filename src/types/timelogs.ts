@@ -160,3 +160,72 @@ export interface TimeLogParams {
   /** Component type filter */
   component_type: "task" | "bug" | "general";
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SCHEMAS (CREATE/UPDATE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Input schema for creating a time log
+ */
+export const CreateTimeLogInputSchema = z.object({
+  /** Date of the log (MM-DD-YYYY format) (required) */
+  date: z.string(),
+  /** Billing status (required) */
+  bill_status: z.enum(["Billable", "Non Billable"]),
+  /** Hours logged */
+  hours: z.union([z.number(), z.string()]),
+  /** Minutes logged (0-59) */
+  minutes: z.union([z.number(), z.string()]).optional(),
+  /** Notes/description */
+  notes: z.string().optional(),
+  /** User ID who logged the time */
+  owner: z.string().optional(),
+  /** Start time (HH:MM format) */
+  start_time: z.string().optional(),
+  /** End time (HH:MM format) */
+  end_time: z.string().optional(),
+  /** Approval status */
+  set_approval_status: z.enum(["Approved", "Pending", "Rejected"]).optional(),
+  /** Custom field values */
+  custom_fields: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+});
+
+export type CreateTimeLogInput = z.infer<typeof CreateTimeLogInputSchema>;
+
+/**
+ * Input schema for creating a task time log (includes task_id)
+ */
+export const CreateTaskTimeLogInputSchema = CreateTimeLogInputSchema.extend({
+  /** Task ID to log time against (required) */
+  task_id: z.string(),
+});
+
+export type CreateTaskTimeLogInput = z.infer<typeof CreateTaskTimeLogInputSchema>;
+
+/**
+ * Input schema for creating a bug time log (includes bug_id)
+ */
+export const CreateBugTimeLogInputSchema = CreateTimeLogInputSchema.extend({
+  /** Bug ID to log time against (required) */
+  bug_id: z.string(),
+});
+
+export type CreateBugTimeLogInput = z.infer<typeof CreateBugTimeLogInputSchema>;
+
+/**
+ * Input schema for creating a general time log (includes name)
+ */
+export const CreateGeneralTimeLogInputSchema = CreateTimeLogInputSchema.extend({
+  /** Activity name (required) */
+  name: z.string().min(1),
+});
+
+export type CreateGeneralTimeLogInput = z.infer<typeof CreateGeneralTimeLogInputSchema>;
+
+/**
+ * Input schema for updating a time log (all fields optional)
+ */
+export const UpdateTimeLogInputSchema = CreateTimeLogInputSchema.partial();
+
+export type UpdateTimeLogInput = z.infer<typeof UpdateTimeLogInputSchema>;

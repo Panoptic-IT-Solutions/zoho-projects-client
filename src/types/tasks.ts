@@ -161,3 +161,62 @@ export const TaskResponseSchema = z.object({
 });
 
 export type TaskResponse = z.infer<typeof TaskResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SCHEMAS (CREATE/UPDATE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Input schema for creating a task
+ */
+export const CreateTaskInputSchema = z.object({
+  /** Task name (required) */
+  name: z.string().min(1),
+  /** Task description */
+  description: z.string().optional(),
+  /** Task list ID to add task to */
+  tasklist_id: z.string().optional(),
+  /** Milestone/phase ID */
+  milestone_id: z.string().optional(),
+  /** Parent task ID (for subtasks) */
+  parent_task_id: z.string().optional(),
+  /** Start date (MM-DD-YYYY format) */
+  start_date: z.string().optional(),
+  /** End date (MM-DD-YYYY format) */
+  end_date: z.string().optional(),
+  /** Duration in days */
+  duration: z.number().optional(),
+  /** Duration type */
+  duration_type: z.enum(["days", "hrs"]).optional(),
+  /** Priority level */
+  priority: z.enum(["None", "Low", "Medium", "High"]).optional(),
+  /** Percent complete (0-100) */
+  percent_complete: z.number().min(0).max(100).optional(),
+  /** Assignee user IDs (comma-separated) */
+  persons: z.string().optional(),
+  /** Work hours (format: "HH:MM") */
+  work: z.string().optional(),
+  /** Work type */
+  work_type: z.enum(["work_hrs_per_day", "work_in_percentage", "work_hours"]).optional(),
+  /** Billing type */
+  billingtype: z.enum(["Billable", "Non Billable"]).optional(),
+  /** Group name for grouping tasks */
+  group_name: z.string().optional(),
+  /** Recurrence settings */
+  recurrence: z.object({
+    frequency: z.enum(["daily", "weekly", "monthly", "yearly"]).optional(),
+    end_date: z.string().optional(),
+    occurrences: z.number().optional(),
+  }).optional(),
+  /** Custom field values */
+  custom_fields: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+});
+
+export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;
+
+/**
+ * Input schema for updating a task (all fields optional)
+ */
+export const UpdateTaskInputSchema = CreateTaskInputSchema.partial();
+
+export type UpdateTaskInput = z.infer<typeof UpdateTaskInputSchema>;

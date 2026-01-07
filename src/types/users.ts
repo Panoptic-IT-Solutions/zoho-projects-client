@@ -83,3 +83,69 @@ export const ProjectUserListResponseSchema = z.object({
 });
 
 export type ProjectUserListResponse = z.infer<typeof ProjectUserListResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SCHEMAS (CREATE/UPDATE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Input schema for inviting a user to the portal
+ */
+export const InviteUserInputSchema = z.object({
+  /** User email address (required) */
+  email: z.string().email(),
+  /** User display name */
+  name: z.string().optional(),
+  /** Role ID to assign */
+  role_id: z.string().optional(),
+  /** Profile ID to assign */
+  profile_id: z.string().optional(),
+  /** Hourly rate */
+  rate: z.number().optional(),
+  /** Cost per hour */
+  cost_per_hour: z.number().optional(),
+  /** Project IDs to associate (comma-separated) */
+  project_ids: z.string().optional(),
+});
+
+export type InviteUserInput = z.infer<typeof InviteUserInputSchema>;
+
+/**
+ * Input schema for adding a user to a project
+ */
+export const AddUserToProjectInputSchema = z.object({
+  /** User ID (required) */
+  user_id: z.string(),
+  /** Role ID for this project */
+  role_id: z.string().optional(),
+  /** Profile ID for this project */
+  profile_id: z.string().optional(),
+  /** Hourly rate for this project */
+  rate: z.number().optional(),
+});
+
+export type AddUserToProjectInput = z.infer<typeof AddUserToProjectInputSchema>;
+
+/**
+ * Input schema for updating a user
+ */
+export const UpdateUserInputSchema = z.object({
+  /** User display name */
+  name: z.string().optional(),
+  /** Role ID */
+  role_id: z.string().optional(),
+  /** Profile ID */
+  profile_id: z.string().optional(),
+  /** Hourly rate */
+  rate: z.number().optional(),
+  /** Cost per hour */
+  cost_per_hour: z.number().optional(),
+  /** User budget */
+  user_budget: z.number().optional(),
+  /** Revenue budget */
+  revenue_budget: z.number().optional(),
+  /** Budget threshold percentage */
+  budget_threshold: z.number().optional(),
+});
+
+export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>;
