@@ -8,6 +8,46 @@ TypeScript client for Zoho Projects V3 API with OAuth 2.0 and rate limiting.
 npm install @panoptic-it-solutions/zoho-projects-client
 ```
 
+## AI Agent Setup (Claude Code)
+
+For projects using Claude Code or other AI coding assistants, run the init command to set up helpful slash commands and documentation:
+
+```bash
+npx @panoptic-it-solutions/zoho-projects-client init
+```
+
+### What it sets up
+
+| File/Directory | Description |
+|----------------|-------------|
+| `.claude/commands/zoho-projects.md` | Full API reference with all namespaces and methods |
+| `.claude/commands/zoho-auth.md` | OAuth 2.0 setup guide |
+| `.claude/commands/zoho-examples.md` | Common usage patterns and examples |
+| `CLAUDE.md` | Project context file for AI assistants |
+
+### Available Slash Commands
+
+After setup, use these commands in Claude Code:
+
+- `/zoho-projects` - Complete API reference
+- `/zoho-auth` - OAuth authentication setup guide
+- `/zoho-examples` - Code examples and patterns
+
+### Options
+
+```bash
+# Include type definitions for enhanced AI visibility
+npx @panoptic-it-solutions/zoho-projects-client init --with-types
+
+# Skip npm install (if already installed)
+npx @panoptic-it-solutions/zoho-projects-client init --skip-install
+
+# Show help
+npx @panoptic-it-solutions/zoho-projects-client init --help
+```
+
+The `--with-types` option copies TypeScript definitions to `.ai-types/` for AI assistants that benefit from having type information in the project.
+
 ## Quick Start
 
 ```typescript
