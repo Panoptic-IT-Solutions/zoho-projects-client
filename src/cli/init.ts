@@ -54,19 +54,35 @@ async function init(options: InitOptions): Promise<void> {
     console.error("Failed to create .claude/commands/:", error);
   }
 
-  // 3. Create CLAUDE.md (if it doesn't exist)
+  // 3. Create or update CLAUDE.md
   const claudeMdPath = path.join(projectRoot, "CLAUDE.md");
   const templateClaudeMd = path.join(templatesDir, "CLAUDE.md");
+  const ZOHO_SECTION_MARKER = "<!-- zoho-projects-client -->";
 
-  if (await fileExists(claudeMdPath)) {
-    console.log("CLAUDE.md already exists, skipping");
-  } else {
-    try {
-      await fs.copyFile(templateClaudeMd, claudeMdPath);
+  try {
+    if (await fileExists(claudeMdPath)) {
+      // Read existing content
+      const existingContent = await fs.readFile(claudeMdPath, "utf-8");
+      const templateContent = await fs.readFile(templateClaudeMd, "utf-8");
+
+      // Check if already has Zoho Projects section
+      if (existingContent.includes(ZOHO_SECTION_MARKER)) {
+        console.log("CLAUDE.md already contains Zoho Projects section, skipping");
+      } else {
+        // Append with clear separator
+        const appendContent = `\n\n---\n\n${ZOHO_SECTION_MARKER}\n${templateContent}`;
+        await fs.appendFile(claudeMdPath, appendContent);
+        console.log("Appended Zoho Projects section to existing CLAUDE.md");
+      }
+    } else {
+      // Create new file with marker
+      const templateContent = await fs.readFile(templateClaudeMd, "utf-8");
+      const contentWithMarker = `${ZOHO_SECTION_MARKER}\n${templateContent}`;
+      await fs.writeFile(claudeMdPath, contentWithMarker);
       console.log("Created CLAUDE.md");
-    } catch (error) {
-      console.error("Failed to create CLAUDE.md:", error);
     }
+  } catch (error) {
+    console.error("Failed to create/update CLAUDE.md:", error);
   }
 
   // 4. Optionally copy types
