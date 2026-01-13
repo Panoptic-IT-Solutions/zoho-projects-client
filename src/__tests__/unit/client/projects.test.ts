@@ -237,9 +237,9 @@ describe("projects", () => {
   });
 
   describe("delete", () => {
-    it("should delete a project", async () => {
+    it("should delete a project (move to trash via POST)", async () => {
       server.use(
-        http.delete(`${BASE_URL}/projects/123`, () => {
+        http.post(`${BASE_URL}/projects/123/trash`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
