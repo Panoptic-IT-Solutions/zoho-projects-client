@@ -477,10 +477,11 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
 
       /**
        * Delete a project (moves to trash)
+       * V3 API uses POST /projects/{projectId}/trash
        */
       async delete(projectId: string): Promise<void> {
-        await request(`${basePath}/projects/${projectId}`, {
-          method: "DELETE",
+        await request(`${basePath}/projects/${projectId}/trash`, {
+          method: "POST",
         });
       },
     },
