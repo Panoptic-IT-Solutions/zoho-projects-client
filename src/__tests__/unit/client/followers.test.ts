@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockFollower, mockFollowers } from "../../fixtures/followers.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("followers", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -27,7 +27,7 @@ describe("followers", () => {
       it("should list followers for a task", async () => {
         server.use(
           http.get(
-            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/`,
+            `${BASE_URL}/projects/proj_001/tasks/task_001/followers`,
             () => {
               return HttpResponse.json({
                 followers: mockFollowers,
@@ -54,7 +54,7 @@ describe("followers", () => {
 
         server.use(
           http.post(
-            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/`,
+            `${BASE_URL}/projects/proj_001/tasks/task_001/followers`,
             async ({ request }) => {
               capturedBody = await request.json();
               return HttpResponse.json({ followers: mockFollowers });
@@ -76,7 +76,7 @@ describe("followers", () => {
       it("should remove a follower from a task", async () => {
         server.use(
           http.delete(
-            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/user_001/`,
+            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/user_001`,
             () => {
               return new HttpResponse(null, { status: 204 });
             }
@@ -92,7 +92,7 @@ describe("followers", () => {
       it("should follow an entity (add current user)", async () => {
         server.use(
           http.post(
-            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/me/`,
+            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/me`,
             () => {
               return HttpResponse.json({});
             }
@@ -108,7 +108,7 @@ describe("followers", () => {
       it("should unfollow an entity (remove current user)", async () => {
         server.use(
           http.delete(
-            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/me/`,
+            `${BASE_URL}/projects/proj_001/tasks/task_001/followers/me`,
             () => {
               return new HttpResponse(null, { status: 204 });
             }
@@ -125,7 +125,7 @@ describe("followers", () => {
     it("should list followers for an issue", async () => {
       server.use(
         http.get(
-          `${BASE_URL}/projects/proj_001/bugs/bug_001/followers/`,
+          `${BASE_URL}/projects/proj_001/bugs/bug_001/followers`,
           () => {
             return HttpResponse.json({
               followers: mockFollowers,
@@ -146,7 +146,7 @@ describe("followers", () => {
     it("should list followers for a forum", async () => {
       server.use(
         http.get(
-          `${BASE_URL}/projects/proj_001/forums/forum_001/followers/`,
+          `${BASE_URL}/projects/proj_001/forums/forum_001/followers`,
           () => {
             return HttpResponse.json({
               followers: mockFollowers,

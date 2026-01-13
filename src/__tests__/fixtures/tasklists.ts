@@ -5,10 +5,8 @@ import { faker } from "@faker-js/faker";
 import type { TaskList } from "../../types/index.js";
 
 export function createTasklistFixture(overrides: Partial<TaskList> = {}): TaskList {
-  const id = faker.number.int({ min: 100000, max: 999999 });
   return {
-    id,
-    id_string: id.toString(),
+    id: faker.string.numeric(15),
     name: faker.company.buzzNoun() + " Tasks",
     flag: faker.helpers.arrayElement(["internal", "external"]),
     completed: faker.datatype.boolean(),

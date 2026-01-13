@@ -13,7 +13,7 @@ import {
 
 const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "67890";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
 
 describe("issues", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -32,7 +32,7 @@ describe("issues", () => {
       const mockIssues = createIssueListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/bugs/`, () => {
+        http.get(`${BASE_URL}/bugs`, () => {
           return HttpResponse.json(createIssueListResponse(mockIssues));
         })
       );
@@ -52,7 +52,7 @@ describe("issues", () => {
       const mockIssue = createIssueFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/bugs/123/`, () => {
+        http.get(`${BASE_URL}/bugs/123`, () => {
           return HttpResponse.json({ bugs: [mockIssue] });
         })
       );
@@ -67,7 +67,7 @@ describe("issues", () => {
       const newIssue = createIssueFixture({ title: "New Bug" });
 
       server.use(
-        http.post(`${BASE_URL}/bugs/`, async () => {
+        http.post(`${BASE_URL}/bugs`, async () => {
           return HttpResponse.json({ bugs: [newIssue] });
         })
       );
@@ -82,7 +82,7 @@ describe("issues", () => {
       const updatedIssue = createIssueFixture({ id: 123, id_string: "123", title: "Updated Bug" });
 
       server.use(
-        http.put(`${BASE_URL}/bugs/123/`, () => {
+        http.put(`${BASE_URL}/bugs/123`, () => {
           return HttpResponse.json({ bugs: [updatedIssue] });
         })
       );
@@ -95,7 +95,7 @@ describe("issues", () => {
   describe("delete", () => {
     it("should delete an issue", async () => {
       server.use(
-        http.delete(`${BASE_URL}/bugs/123/`, () => {
+        http.delete(`${BASE_URL}/bugs/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

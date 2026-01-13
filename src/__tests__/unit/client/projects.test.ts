@@ -12,7 +12,7 @@ import {
 } from "../../fixtures/projects.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("projects", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -31,7 +31,7 @@ describe("projects", () => {
       const mockProjects = createProjectListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/projects/`, () => {
+        http.get(`${BASE_URL}/projects`, () => {
           return HttpResponse.json(createProjectListResponse(mockProjects));
         })
       );
@@ -51,21 +51,21 @@ describe("projects", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/projects/`, ({ request }) => {
+        http.get(`${BASE_URL}/projects`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json(createProjectListResponse([]));
         })
       );
 
-      await client.projects.list({ index: 10, range: 50 });
+      await client.projects.list({ page: 2, per_page: 50 });
 
-      expect(capturedParams?.get("index")).toBe("10");
-      expect(capturedParams?.get("range")).toBe("50");
+      expect(capturedParams?.get("page")).toBe("2");
+      expect(capturedParams?.get("per_page")).toBe("50");
     });
 
     it("should handle empty response", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/`, () => {
+        http.get(`${BASE_URL}/projects`, () => {
           return HttpResponse.json(createProjectListResponse([]));
         })
       );
@@ -81,7 +81,7 @@ describe("projects", () => {
       const mockProject = createProjectFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/projects/123/`, () => {
+        http.get(`${BASE_URL}/projects/123`, () => {
           return HttpResponse.json({ projects: [mockProject] });
         })
       );
@@ -94,7 +94,7 @@ describe("projects", () => {
 
     it("should throw error when project not found", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/999/`, () => {
+        http.get(`${BASE_URL}/projects/999`, () => {
           return HttpResponse.json({ projects: [] });
         })
       );
@@ -112,12 +112,12 @@ describe("projects", () => {
       let requestCount = 0;
 
       server.use(
-        http.get(`${BASE_URL}/projects/`, ({ request }) => {
+        http.get(`${BASE_URL}/projects`, ({ request }) => {
           requestCount++;
           const url = new URL(request.url);
-          const index = parseInt(url.searchParams.get("index") || "0");
+          const page = parseInt(url.searchParams.get("page") || "1");
 
-          if (index === 0) {
+          if (page === 1) {
             return HttpResponse.json(
               createProjectListResponse(page1, true)
             );
@@ -139,7 +139,7 @@ describe("projects", () => {
       const projects = createProjectListFixture(100);
 
       server.use(
-        http.get(`${BASE_URL}/projects/`, () => {
+        http.get(`${BASE_URL}/projects`, () => {
           return HttpResponse.json(createProjectListResponse(projects, true));
         })
       );
@@ -155,7 +155,7 @@ describe("projects", () => {
       const mockProjects = createProjectListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/projects/`, () => {
+        http.get(`${BASE_URL}/projects`, () => {
           return HttpResponse.json(createProjectListResponse(mockProjects));
         })
       );
@@ -175,7 +175,7 @@ describe("projects", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/projects/`, async ({ request }) => {
+        http.post(`${BASE_URL}/projects`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ projects: [newProject] });
         })
@@ -192,7 +192,7 @@ describe("projects", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/projects/`, async ({ request }) => {
+        http.post(`${BASE_URL}/projects`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ projects: [newProject] });
         })
@@ -225,7 +225,7 @@ describe("projects", () => {
       });
 
       server.use(
-        http.put(`${BASE_URL}/projects/123/`, () => {
+        http.put(`${BASE_URL}/projects/123`, () => {
           return HttpResponse.json({ projects: [updatedProject] });
         })
       );
@@ -239,7 +239,7 @@ describe("projects", () => {
   describe("delete", () => {
     it("should delete a project", async () => {
       server.use(
-        http.delete(`${BASE_URL}/projects/123/`, () => {
+        http.delete(`${BASE_URL}/projects/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

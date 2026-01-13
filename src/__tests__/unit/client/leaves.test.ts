@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockLeave, mockLeaves } from "../../fixtures/leaves.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("leaves", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("leaves", () => {
   describe("list", () => {
     it("should list all leaves", async () => {
       server.use(
-        http.get(`${BASE_URL}/leaves/`, () => {
+        http.get(`${BASE_URL}/leaves`, () => {
           return HttpResponse.json({
             leaves: mockLeaves,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -47,7 +47,7 @@ describe("leaves", () => {
   describe("get", () => {
     it("should get a single leave by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/leaves/leave_001/`, () => {
+        http.get(`${BASE_URL}/leaves/leave_001`, () => {
           return HttpResponse.json({ leaves: [mockLeave] });
         })
       );
@@ -65,7 +65,7 @@ describe("leaves", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/leaves/`, async ({ request }) => {
+        http.post(`${BASE_URL}/leaves`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ leaves: [mockLeave] });
         })
@@ -92,7 +92,7 @@ describe("leaves", () => {
       const updatedLeave = { ...mockLeave, status: "rejected" as const };
 
       server.use(
-        http.put(`${BASE_URL}/leaves/leave_001/`, () => {
+        http.put(`${BASE_URL}/leaves/leave_001`, () => {
           return HttpResponse.json({ leaves: [updatedLeave] });
         })
       );
@@ -108,7 +108,7 @@ describe("leaves", () => {
   describe("delete", () => {
     it("should delete a leave request", async () => {
       server.use(
-        http.delete(`${BASE_URL}/leaves/leave_001/`, () => {
+        http.delete(`${BASE_URL}/leaves/leave_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

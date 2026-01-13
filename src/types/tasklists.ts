@@ -6,46 +6,75 @@ import { ZohoPageInfoSchema } from "./common.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Task List from Zoho Projects API
+ * V3 Sequence object (different from V2 which was just a number)
+ */
+export const TaskListSequenceSchema = z.object({
+  milestone_sequence: z.number().optional(),
+  project_sequence: z.number().optional(),
+}).passthrough();
+
+/**
+ * Task List from Zoho Projects V3 API
+ * Note: V3 returns IDs as strings, not numbers
  */
 export const TaskListSchema = z.object({
-  // Identification
-  id: z.number(),
-  id_string: z.string(),
+  // Identification - V3 uses string IDs, coerce handles both string and number
+  id: z.coerce.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
 
   // Status
   completed: z.boolean().optional(),
   is_completed: z.boolean().optional(),
+  flag: z.string().optional(), // "internal" | "external"
+  status: z.string().optional(), // "active" | "completed"
 
-  // Sequence
-  sequence: z.number().optional(),
+  // Sequence - V3 returns object, not number
+  sequence: z.union([
+    z.number(),
+    TaskListSequenceSchema,
+  ]).optional(),
 
-  // Milestone association
+  // Milestone association - V3 uses string IDs
   milestone: z.object({
-    id: z.number(),
-    id_string: z.string().optional(),
+    id: z.coerce.string(),
     name: z.string(),
-  }).optional(),
+  }).passthrough().optional(),
 
   // Counts
   task_count: z.object({
-    open: z.number(),
-    closed: z.number(),
+    open: z.coerce.number(),
+    closed: z.coerce.number(),
   }).optional(),
 
-  // Project reference
+  // Project reference - V3 uses string IDs
   project: z.object({
-    id: z.number(),
-    id_string: z.string().optional(),
+    id: z.coerce.string(),
     name: z.string(),
-  }).optional(),
+  }).passthrough().optional(),
 
   // Links
   link: z.object({
     self: z.object({ url: z.string() }).optional(),
     task: z.object({ url: z.string() }).optional(),
+  }).passthrough().optional(),
+
+  // V3 specific fields
+  created_via: z.string().optional(),
+  created_by: z.object({
+    zuid: z.union([z.string(), z.number()]).optional(),
+    zpuid: z.string().optional(),
+    name: z.string().optional(),
+    email: z.string().optional(),
+    first_name: z.string().optional(),
+    last_name: z.string().optional(),
+  }).passthrough().optional(),
+  meta_info: z.object({
+    is_completed: z.boolean().optional(),
+    is_rolled: z.boolean().optional(),
+    is_general: z.boolean().optional(),
+    has_comments: z.boolean().optional(),
+    is_none_milestone_tasklist: z.boolean().optional(),
   }).passthrough().optional(),
 
   // Timestamps

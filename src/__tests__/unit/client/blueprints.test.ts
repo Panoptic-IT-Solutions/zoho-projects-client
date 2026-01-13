@@ -13,7 +13,7 @@ import {
 } from "../../fixtures/blueprints.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("blueprints", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -30,7 +30,7 @@ describe("blueprints", () => {
   describe("list", () => {
     it("should list all blueprints", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/blueprints/`, () => {
+        http.get(`${BASE_URL}/settings/blueprints`, () => {
           return HttpResponse.json({
             blueprints: mockBlueprints,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -51,7 +51,7 @@ describe("blueprints", () => {
   describe("get", () => {
     it("should get a single blueprint by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/blueprints/bp_001/`, () => {
+        http.get(`${BASE_URL}/settings/blueprints/bp_001`, () => {
           return HttpResponse.json({ blueprints: [mockBlueprint] });
         })
       );
@@ -67,7 +67,7 @@ describe("blueprints", () => {
   describe("getNextTransitions", () => {
     it("should get available transitions for a task", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/tasks/task_123/transitions/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/tasks/task_123/transitions`, () => {
           return HttpResponse.json(mockNextTransitionsResponse);
         })
       );
@@ -84,7 +84,7 @@ describe("blueprints", () => {
 
     it("should get available transitions for an issue", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/bugs/issue_123/transitions/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/bugs/issue_123/transitions`, () => {
           return HttpResponse.json(mockNextTransitionsResponse);
         })
       );
@@ -103,7 +103,7 @@ describe("blueprints", () => {
     it("should get required actions for a transition", async () => {
       server.use(
         http.get(
-          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001/actions/`,
+          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001/actions`,
           () => {
             return HttpResponse.json(mockDuringActionsResponse);
           }
@@ -128,7 +128,7 @@ describe("blueprints", () => {
 
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001/`,
+          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001`,
           async ({ request }) => {
             capturedBody = await request.json();
             return new HttpResponse(null, { status: 200 });
@@ -150,7 +150,7 @@ describe("blueprints", () => {
   describe("getTaskTransitions", () => {
     it("should get transitions for a task", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/tasks/task_123/transitions/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/tasks/task_123/transitions`, () => {
           return HttpResponse.json(mockNextTransitionsResponse);
         })
       );
@@ -168,7 +168,7 @@ describe("blueprints", () => {
   describe("getIssueTransitions", () => {
     it("should get transitions for an issue", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/bugs/issue_123/transitions/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/bugs/issue_123/transitions`, () => {
           return HttpResponse.json(mockNextTransitionsResponse);
         })
       );
@@ -186,7 +186,7 @@ describe("blueprints", () => {
     it("should execute a task transition", async () => {
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001/`,
+          `${BASE_URL}/projects/proj_001/tasks/task_123/transitions/trans_001`,
           () => {
             return new HttpResponse(null, { status: 200 });
           }
@@ -207,7 +207,7 @@ describe("blueprints", () => {
     it("should execute an issue transition", async () => {
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/bugs/issue_123/transitions/trans_001/`,
+          `${BASE_URL}/projects/proj_001/bugs/issue_123/transitions/trans_001`,
           () => {
             return new HttpResponse(null, { status: 200 });
           }

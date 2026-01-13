@@ -62,7 +62,7 @@ export type SearchResult = z.infer<typeof SearchResultSchema>;
 export const SearchResponseSchema = z.object({
   results: z.array(SearchResultSchema).optional(),
   search_results: z.array(SearchResultSchema).optional(),
-  total_count: z.number().optional(),
+  total_count: z.coerce.number().optional(),
   page_info: ZohoPageInfoSchema.optional(),
 });
 

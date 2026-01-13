@@ -30,8 +30,8 @@ export const ClientSchema = z.object({
   currency_code: z.string().optional(),
 
   // Associations
-  projects_count: z.number().optional(),
-  contacts_count: z.number().optional(),
+  projects_count: z.coerce.number().optional(),
+  contacts_count: z.coerce.number().optional(),
 
   // Timestamps
   created_time: z.string().optional(),

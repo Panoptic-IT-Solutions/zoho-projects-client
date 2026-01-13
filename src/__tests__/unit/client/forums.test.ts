@@ -13,7 +13,7 @@ import {
 
 const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "67890";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
 
 describe("forums", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -32,7 +32,7 @@ describe("forums", () => {
       const mockForums = createForumListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/forums/`, () => {
+        http.get(`${BASE_URL}/forums`, () => {
           return HttpResponse.json(createForumListResponse(mockForums));
         })
       );
@@ -52,7 +52,7 @@ describe("forums", () => {
       const mockForum = createForumFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/forums/123/`, () => {
+        http.get(`${BASE_URL}/forums/123`, () => {
           return HttpResponse.json({ forums: [mockForum] });
         })
       );
@@ -67,7 +67,7 @@ describe("forums", () => {
       const newForum = createForumFixture({ name: "New Forum" });
 
       server.use(
-        http.post(`${BASE_URL}/forums/`, async () => {
+        http.post(`${BASE_URL}/forums`, async () => {
           return HttpResponse.json({ forums: [newForum] });
         })
       );
@@ -82,7 +82,7 @@ describe("forums", () => {
       const updatedForum = createForumFixture({ id: 123, id_string: "123", name: "Updated Forum" });
 
       server.use(
-        http.put(`${BASE_URL}/forums/123/`, () => {
+        http.put(`${BASE_URL}/forums/123`, () => {
           return HttpResponse.json({ forums: [updatedForum] });
         })
       );
@@ -95,7 +95,7 @@ describe("forums", () => {
   describe("delete", () => {
     it("should delete a forum", async () => {
       server.use(
-        http.delete(`${BASE_URL}/forums/123/`, () => {
+        http.delete(`${BASE_URL}/forums/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

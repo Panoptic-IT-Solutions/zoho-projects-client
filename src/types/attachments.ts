@@ -6,12 +6,12 @@ import { ZohoPageInfoSchema, OwnerRefSchema } from "./common.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Attachment from Zoho Projects API
+ * Attachment from Zoho Projects V3 API
+ * Note: V3 returns IDs as strings
  */
 export const AttachmentSchema = z.object({
-  // Identification
-  id: z.number(),
-  id_string: z.string(),
+  // Identification - V3 uses string IDs, coerce handles both string and number
+  id: z.coerce.string(),
   name: z.string(),
   filename: z.string().optional(),
 
@@ -38,12 +38,11 @@ export const AttachmentSchema = z.object({
   entity_id: z.string().optional(),
   entity_name: z.string().optional(),
 
-  // Project reference
+  // Project reference - V3 uses string IDs
   project: z.object({
-    id: z.number(),
-    id_string: z.string().optional(),
+    id: z.coerce.string(),
     name: z.string(),
-  }).optional(),
+  }).passthrough().optional(),
 
   // Links
   link: z.object({
@@ -64,10 +63,24 @@ export type Attachment = z.infer<typeof AttachmentSchema>;
 // RESPONSE SCHEMAS
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const AttachmentListResponseSchema = z.object({
+/**
+ * V3 API returns "attachment" (singular) as the key, not "attachments"
+ * Handle both formats with a union
+ */
+const V3AttachmentListResponseSchema = z.object({
+  attachment: z.array(AttachmentSchema),
+  page_info: ZohoPageInfoSchema.optional(),
+});
+
+const LegacyAttachmentListResponseSchema = z.object({
   attachments: z.array(AttachmentSchema),
   page_info: ZohoPageInfoSchema.optional(),
 });
+
+export const AttachmentListResponseSchema = z.union([
+  V3AttachmentListResponseSchema,
+  LegacyAttachmentListResponseSchema,
+]);
 
 export type AttachmentListResponse = z.infer<typeof AttachmentListResponseSchema>;
 
@@ -82,7 +95,7 @@ export type AttachmentResponse = z.infer<typeof AttachmentResponseSchema>;
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Input schema for uploading an attachment
+ * Input schema for uploading an attachment (legacy API)
  * Note: The actual file is passed separately as FormData
  */
 export const UploadAttachmentInputSchema = z.object({
@@ -97,3 +110,42 @@ export const UploadAttachmentInputSchema = z.object({
 });
 
 export type UploadAttachmentInput = z.infer<typeof UploadAttachmentInputSchema>;
+
+/**
+ * V3 API list attachments parameters
+ * Note: V3 requires entity_type and entity_id for listing
+ */
+export const ListAttachmentsParamsSchema = z.object({
+  /** Entity type (required for V3) */
+  entity_type: z.enum(["task", "bug", "forum", "project"]),
+  /** Entity ID (required for V3) */
+  entity_id: z.string(),
+  /** Page number (1-based) */
+  page: z.number().optional(),
+  /** Results per page */
+  per_page: z.number().optional(),
+});
+
+export type ListAttachmentsParams = z.infer<typeof ListAttachmentsParamsSchema>;
+
+/**
+ * V3 API associate attachment input
+ */
+export const AssociateAttachmentInputSchema = z.object({
+  /** Entity type to associate with */
+  entity_type: z.enum(["task", "bug", "forum"]),
+  /** Entity ID to associate with */
+  entity_id: z.string(),
+});
+
+export type AssociateAttachmentInput = z.infer<typeof AssociateAttachmentInputSchema>;
+
+/**
+ * V3 API add attachments to entity input
+ */
+export const AddAttachmentsToEntityInputSchema = z.object({
+  /** Array of attachment IDs to add */
+  attachment_ids: z.array(z.string()),
+});
+
+export type AddAttachmentsToEntityInput = z.infer<typeof AddAttachmentsToEntityInputSchema>;

@@ -13,7 +13,7 @@ import {
 
 const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "proj-1";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("tasks", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -32,7 +32,7 @@ describe("tasks", () => {
       const mockTasks = createTaskListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/`, () => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks`, () => {
           return HttpResponse.json(createTaskListResponse(mockTasks));
         })
       );
@@ -51,21 +51,21 @@ describe("tasks", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/`, ({ request }) => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json(createTaskListResponse([]));
         })
       );
 
       await client.tasks.list(TEST_PROJECT_ID, {
-        index: 20,
-        range: 50,
+        page: 2,
+        per_page: 50,
         sort_column: "name",
         sort_order: "ascending",
       });
 
-      expect(capturedParams?.get("index")).toBe("20");
-      expect(capturedParams?.get("range")).toBe("50");
+      expect(capturedParams?.get("page")).toBe("2");
+      expect(capturedParams?.get("per_page")).toBe("50");
       expect(capturedParams?.get("sort_column")).toBe("name");
       expect(capturedParams?.get("sort_order")).toBe("ascending");
     });
@@ -76,7 +76,7 @@ describe("tasks", () => {
       const mockTask = createTaskFixture({ id: 456, id_string: "456" });
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId/`, () => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId`, () => {
           return HttpResponse.json({ tasks: [mockTask] });
         })
       );
@@ -89,7 +89,7 @@ describe("tasks", () => {
 
     it("should throw error when task not found", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId/`, () => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId`, () => {
           return HttpResponse.json({ tasks: [] });
         })
       );
@@ -107,12 +107,12 @@ describe("tasks", () => {
       let requestCount = 0;
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/`, ({ request }) => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks`, ({ request }) => {
           requestCount++;
           const url = new URL(request.url);
-          const index = parseInt(url.searchParams.get("index") || "0");
+          const page = parseInt(url.searchParams.get("page") || "1");
 
-          if (index === 0) {
+          if (page === 1) {
             return HttpResponse.json(createTaskListResponse(page1, true));
           } else {
             return HttpResponse.json(createTaskListResponse(page2, false));
@@ -132,7 +132,7 @@ describe("tasks", () => {
       const mockTasks = createTaskListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/`, () => {
+        http.get(`${BASE_URL}/projects/:projectId/tasks`, () => {
           return HttpResponse.json(createTaskListResponse(mockTasks));
         })
       );
@@ -152,7 +152,7 @@ describe("tasks", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/projects/:projectId/tasks/`, async ({ request }) => {
+        http.post(`${BASE_URL}/projects/:projectId/tasks`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ tasks: [newTask] });
         })
@@ -168,7 +168,7 @@ describe("tasks", () => {
       const newTask = createTaskFixture({ name: "Full Task" });
 
       server.use(
-        http.post(`${BASE_URL}/projects/:projectId/tasks/`, () => {
+        http.post(`${BASE_URL}/projects/:projectId/tasks`, () => {
           return HttpResponse.json({ tasks: [newTask] });
         })
       );
@@ -194,7 +194,7 @@ describe("tasks", () => {
       });
 
       server.use(
-        http.put(`${BASE_URL}/projects/:projectId/tasks/:taskId/`, () => {
+        http.patch(`${BASE_URL}/projects/:projectId/tasks/:taskId`, () => {
           return HttpResponse.json({ tasks: [updatedTask] });
         })
       );
@@ -210,7 +210,7 @@ describe("tasks", () => {
   describe("delete", () => {
     it("should delete a task", async () => {
       server.use(
-        http.delete(`${BASE_URL}/projects/:projectId/tasks/:taskId/`, () => {
+        http.delete(`${BASE_URL}/projects/:projectId/tasks/:taskId`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

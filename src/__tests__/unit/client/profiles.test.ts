@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockProfile, mockProfiles } from "../../fixtures/profiles.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("profiles", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("profiles", () => {
   describe("list", () => {
     it("should list all profiles", async () => {
       server.use(
-        http.get(`${BASE_URL}/profiles/`, () => {
+        http.get(`${BASE_URL}/profiles`, () => {
           return HttpResponse.json({
             profiles: mockProfiles,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -46,7 +46,7 @@ describe("profiles", () => {
   describe("get", () => {
     it("should get a single profile by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/profiles/profile_001/`, () => {
+        http.get(`${BASE_URL}/profiles/profile_001`, () => {
           return HttpResponse.json({ profiles: [mockProfile] });
         })
       );
@@ -63,7 +63,7 @@ describe("profiles", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/profiles/`, async ({ request }) => {
+        http.post(`${BASE_URL}/profiles`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ profiles: [mockProfile] });
         })
@@ -87,7 +87,7 @@ describe("profiles", () => {
       const updatedProfile = { ...mockProfile, name: "Power User" };
 
       server.use(
-        http.put(`${BASE_URL}/profiles/profile_001/`, () => {
+        http.put(`${BASE_URL}/profiles/profile_001`, () => {
           return HttpResponse.json({ profiles: [updatedProfile] });
         })
       );
@@ -103,7 +103,7 @@ describe("profiles", () => {
   describe("delete", () => {
     it("should delete a profile", async () => {
       server.use(
-        http.delete(`${BASE_URL}/profiles/profile_001/`, () => {
+        http.delete(`${BASE_URL}/profiles/profile_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

@@ -29,14 +29,14 @@ export const TeamSchema = z.object({
 
   // Members
   members: z.array(TeamMemberSchema).optional(),
-  members_count: z.number().optional(),
+  members_count: z.coerce.number().optional(),
 
   // Lead
   lead_id: z.string().optional(),
   lead_name: z.string().optional(),
 
   // Associated projects
-  projects_count: z.number().optional(),
+  projects_count: z.coerce.number().optional(),
 
   // Timestamps
   created_time: z.string().optional(),

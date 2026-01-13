@@ -32,31 +32,31 @@ export interface AutoPaginateOptions {
 /**
  * Create an async generator that automatically handles pagination
  *
- * Usage:
+ * Usage (V3 API - page-based):
  * ```ts
- * for await (const project of autoPaginate((index) =>
- *   client.projects.list({ index, range: 100 })
+ * for await (const project of autoPaginate((page, per_page) =>
+ *   client.projects.list({ page, per_page })
  * )) {
  *   console.log(project);
  * }
  * ```
  *
- * @param fetchPage Function that fetches a page given the index (0-based)
+ * @param fetchPage Function that fetches a page given page number (1-based) and page size
  * @param options Pagination options
  */
 export async function* autoPaginate<T>(
-  fetchPage: (index: number, range: number) => Promise<PaginatedResponse<T>>,
+  fetchPage: (page: number, per_page: number) => Promise<PaginatedResponse<T>>,
   options: AutoPaginateOptions = {}
 ): AsyncGenerator<T, void, unknown> {
   const pageSize = Math.min(options.pageSize ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
   const maxItems = options.maxItems ?? Infinity;
 
-  let index = 0;
+  let page = 1; // V3 API uses 1-based pages
   let itemsYielded = 0;
   let hasMore = true;
 
   while (hasMore && itemsYielded < maxItems) {
-    const response = await fetchPage(index, pageSize);
+    const response = await fetchPage(page, pageSize);
     const items = response.data;
 
     if (items.length === 0) {
@@ -81,7 +81,7 @@ export async function* autoPaginate<T>(
       hasMore = false;
     } else {
       // Move to next page
-      index += pageSize;
+      page++;
     }
   }
 }
@@ -105,14 +105,14 @@ export async function collectAll<T>(
 }
 
 /**
- * Helper to create pagination params for Zoho API
+ * Helper to create pagination params for Zoho V3 API
  */
 export function createPaginationParams(
-  index: number = 0,
-  range: number = DEFAULT_PAGE_SIZE
-): { index: number; range: number } {
+  page: number = 1,
+  per_page: number = DEFAULT_PAGE_SIZE
+): { page: number; per_page: number } {
   return {
-    index,
-    range: Math.min(range, MAX_PAGE_SIZE),
+    page,
+    per_page: Math.min(per_page, MAX_PAGE_SIZE),
   };
 }

@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockSearchResults, mockSearchResponse } from "../../fixtures/search.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("search", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("search", () => {
   describe("query", () => {
     it("should search across all entities", async () => {
       server.use(
-        http.get(`${BASE_URL}/search/`, () => {
+        http.get(`${BASE_URL}/search`, () => {
           return HttpResponse.json(mockSearchResponse);
         })
       );
@@ -39,7 +39,7 @@ describe("search", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/search/`, ({ request }) => {
+        http.get(`${BASE_URL}/search`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json({
             ...mockSearchResponse,
@@ -63,7 +63,7 @@ describe("search", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/search/`, ({ request }) => {
+        http.get(`${BASE_URL}/search`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json(mockSearchResponse);
         })
@@ -85,7 +85,7 @@ describe("search", () => {
       );
 
       server.use(
-        http.get(`${BASE_URL}/search/`, () => {
+        http.get(`${BASE_URL}/search`, () => {
           return HttpResponse.json({
             ...mockSearchResponse,
             results: taskResults,
@@ -108,7 +108,7 @@ describe("search", () => {
       );
 
       server.use(
-        http.get(`${BASE_URL}/search/`, () => {
+        http.get(`${BASE_URL}/search`, () => {
           return HttpResponse.json({
             ...mockSearchResponse,
             results: bugResults,
@@ -131,7 +131,7 @@ describe("search", () => {
       );
 
       server.use(
-        http.get(`${BASE_URL}/search/`, () => {
+        http.get(`${BASE_URL}/search`, () => {
           return HttpResponse.json({
             ...mockSearchResponse,
             results: projectResults,

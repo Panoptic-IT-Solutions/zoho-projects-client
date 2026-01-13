@@ -45,14 +45,14 @@ export const PortalSchema = z.object({
 
   // Counts
   project_count: z.object({
-    template: z.number().optional(),
-    archived: z.number().optional(),
-    active: z.number().optional(),
+    template: z.coerce.number().optional(),
+    archived: z.coerce.number().optional(),
+    active: z.coerce.number().optional(),
   }).optional(),
 
   // Availability
-  available_projects: z.number().optional(),
-  available_users: z.number().optional(),
+  available_projects: z.coerce.number().optional(),
+  available_users: z.coerce.number().optional(),
 
   // Extensions
   extensions: z.array(z.string()).optional(),

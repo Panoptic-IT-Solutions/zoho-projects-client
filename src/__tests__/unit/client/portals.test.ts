@@ -25,7 +25,7 @@ describe("portals", () => {
   describe("list", () => {
     it("should list all portals", async () => {
       server.use(
-        http.get(`${BASE_URL}/portals/`, () => {
+        http.get(`${BASE_URL}/portals`, () => {
           return HttpResponse.json({ portals: mockPortals });
         })
       );
@@ -43,7 +43,7 @@ describe("portals", () => {
   describe("get", () => {
     it("should get a single portal by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/portals/${TEST_PORTAL_ID}/`, () => {
+        http.get(`${BASE_URL}/portals/${TEST_PORTAL_ID}`, () => {
           return HttpResponse.json({ portals: [mockPortal] });
         })
       );
@@ -58,7 +58,7 @@ describe("portals", () => {
   describe("getCurrent", () => {
     it("should get the current portal configured in the client", async () => {
       server.use(
-        http.get(`${BASE_URL}/portals/${TEST_PORTAL_ID}/`, () => {
+        http.get(`${BASE_URL}/portals/${TEST_PORTAL_ID}`, () => {
           return HttpResponse.json({ portals: [mockPortal] });
         })
       );

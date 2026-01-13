@@ -13,7 +13,7 @@ import {
 
 const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "67890";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
 
 describe("events", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -32,7 +32,7 @@ describe("events", () => {
       const mockEvents = createEventListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/events/`, () => {
+        http.get(`${BASE_URL}/events`, () => {
           return HttpResponse.json(createEventListResponse(mockEvents));
         })
       );
@@ -52,7 +52,7 @@ describe("events", () => {
       const mockEvent = createEventFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/events/123/`, () => {
+        http.get(`${BASE_URL}/events/123`, () => {
           return HttpResponse.json({ events: [mockEvent] });
         })
       );
@@ -67,7 +67,7 @@ describe("events", () => {
       const newEvent = createEventFixture({ title: "New Event" });
 
       server.use(
-        http.post(`${BASE_URL}/events/`, async () => {
+        http.post(`${BASE_URL}/events`, async () => {
           return HttpResponse.json({ events: [newEvent] });
         })
       );
@@ -86,7 +86,7 @@ describe("events", () => {
       const updatedEvent = createEventFixture({ id: 123, id_string: "123", title: "Updated Event" });
 
       server.use(
-        http.put(`${BASE_URL}/events/123/`, () => {
+        http.put(`${BASE_URL}/events/123`, () => {
           return HttpResponse.json({ events: [updatedEvent] });
         })
       );
@@ -99,7 +99,7 @@ describe("events", () => {
   describe("delete", () => {
     it("should delete an event", async () => {
       server.use(
-        http.delete(`${BASE_URL}/events/123/`, () => {
+        http.delete(`${BASE_URL}/events/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

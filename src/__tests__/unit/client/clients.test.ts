@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockClient, mockClients } from "../../fixtures/clients.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("clients", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("clients", () => {
   describe("list", () => {
     it("should list all clients", async () => {
       server.use(
-        http.get(`${BASE_URL}/clients/`, () => {
+        http.get(`${BASE_URL}/clients`, () => {
           return HttpResponse.json({
             clients: mockClients,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -46,7 +46,7 @@ describe("clients", () => {
   describe("get", () => {
     it("should get a single client by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/clients/client_001/`, () => {
+        http.get(`${BASE_URL}/clients/client_001`, () => {
           return HttpResponse.json({ clients: [mockClient] });
         })
       );
@@ -63,7 +63,7 @@ describe("clients", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/clients/`, async ({ request }) => {
+        http.post(`${BASE_URL}/clients`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ clients: [mockClient] });
         })
@@ -88,7 +88,7 @@ describe("clients", () => {
       const updatedClient = { ...mockClient, name: "Acme Inc" };
 
       server.use(
-        http.put(`${BASE_URL}/clients/client_001/`, () => {
+        http.put(`${BASE_URL}/clients/client_001`, () => {
           return HttpResponse.json({ clients: [updatedClient] });
         })
       );
@@ -104,7 +104,7 @@ describe("clients", () => {
   describe("delete", () => {
     it("should delete a client", async () => {
       server.use(
-        http.delete(`${BASE_URL}/clients/client_001/`, () => {
+        http.delete(`${BASE_URL}/clients/client_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

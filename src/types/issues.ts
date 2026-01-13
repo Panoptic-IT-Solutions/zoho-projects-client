@@ -106,13 +106,13 @@ export const IssueSchema = z.object({
   }).optional(),
 
   // Linked tasks
-  linked_tasks_count: z.number().optional(),
+  linked_tasks_count: z.coerce.number().optional(),
 
   // Attachments
-  attachment_count: z.number().optional(),
+  attachment_count: z.coerce.number().optional(),
 
   // Comments
-  comment_count: z.number().optional(),
+  comment_count: z.coerce.number().optional(),
 
   // Links
   link: z.object({

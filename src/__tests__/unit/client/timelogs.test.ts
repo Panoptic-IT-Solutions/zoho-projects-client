@@ -12,7 +12,7 @@ import {
 } from "../../fixtures/timelogs.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("timelogs", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -31,7 +31,7 @@ describe("timelogs", () => {
       const mockTimelogs = createTimeLogListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/logs/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/logs`, () => {
           return HttpResponse.json(createTimeLogListResponse(mockTimelogs));
         })
       );
@@ -53,7 +53,7 @@ describe("timelogs", () => {
       const mockTimelog = createTimeLogFixture();
 
       server.use(
-        http.post(`${BASE_URL}/projects/proj_001/logs/`, () => {
+        http.post(`${BASE_URL}/projects/proj_001/logs`, () => {
           return HttpResponse.json({
             timelogs: { tasklogs: [mockTimelog] },
           });
@@ -77,7 +77,7 @@ describe("timelogs", () => {
       const mockTimelog = createTimeLogFixture();
 
       server.use(
-        http.post(`${BASE_URL}/projects/proj_001/logs/`, () => {
+        http.post(`${BASE_URL}/projects/proj_001/logs`, () => {
           return HttpResponse.json({
             timelogs: { buglogs: [mockTimelog] },
           });
@@ -100,7 +100,7 @@ describe("timelogs", () => {
       const mockTimelog = createTimeLogFixture();
 
       server.use(
-        http.post(`${BASE_URL}/projects/proj_001/logs/`, () => {
+        http.post(`${BASE_URL}/projects/proj_001/logs`, () => {
           return HttpResponse.json({
             timelogs: { generallogs: [mockTimelog] },
           });
@@ -123,7 +123,7 @@ describe("timelogs", () => {
       const mockTimelog = createTimeLogFixture({ hours: 4 });
 
       server.use(
-        http.put(`${BASE_URL}/projects/proj_001/logs/log_001/`, () => {
+        http.put(`${BASE_URL}/projects/proj_001/logs/log_001`, () => {
           return HttpResponse.json({
             timelogs: { tasklogs: [mockTimelog] },
           });
@@ -141,7 +141,7 @@ describe("timelogs", () => {
   describe("delete", () => {
     it("should delete a timelog", async () => {
       server.use(
-        http.delete(`${BASE_URL}/projects/proj_001/logs/log_001/`, () => {
+        http.delete(`${BASE_URL}/projects/proj_001/logs/log_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

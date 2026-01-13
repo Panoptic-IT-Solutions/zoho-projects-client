@@ -12,7 +12,7 @@ import {
 } from "../../fixtures/groups.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("groups", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -31,7 +31,7 @@ describe("groups", () => {
       const mockGroups = createGroupListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/groups/`, () => {
+        http.get(`${BASE_URL}/groups`, () => {
           return HttpResponse.json(createGroupListResponse(mockGroups));
         })
       );
@@ -51,7 +51,7 @@ describe("groups", () => {
       const mockGroup = createGroupFixture({ id: "123", id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/groups/123/`, () => {
+        http.get(`${BASE_URL}/groups/123`, () => {
           return HttpResponse.json({ groups: [mockGroup] });
         })
       );
@@ -66,7 +66,7 @@ describe("groups", () => {
       const newGroup = createGroupFixture({ name: "New Group" });
 
       server.use(
-        http.post(`${BASE_URL}/groups/`, async () => {
+        http.post(`${BASE_URL}/groups`, async () => {
           return HttpResponse.json({ groups: [newGroup] });
         })
       );
@@ -81,7 +81,7 @@ describe("groups", () => {
       const updatedGroup = createGroupFixture({ id: "123", id_string: "123", name: "Updated Group" });
 
       server.use(
-        http.put(`${BASE_URL}/groups/123/`, () => {
+        http.put(`${BASE_URL}/groups/123`, () => {
           return HttpResponse.json({ groups: [updatedGroup] });
         })
       );
@@ -94,7 +94,7 @@ describe("groups", () => {
   describe("delete", () => {
     it("should delete a group", async () => {
       server.use(
-        http.delete(`${BASE_URL}/groups/123/`, () => {
+        http.delete(`${BASE_URL}/groups/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

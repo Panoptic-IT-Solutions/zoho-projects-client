@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CustomFieldSchema, ZohoPageInfoSchema } from "./common.js";
+import { V3UserRefSchema } from "./projects.js";
 
 /**
  * Task status object
@@ -9,7 +10,9 @@ export const TaskStatusSchema = z.object({
   name: z.string(),
   type: z.string().optional(), // "open" or "closed"
   color_code: z.string().optional(),
-});
+  color_hexcode: z.string().optional(), // V3
+  is_closed_type: z.boolean().optional(), // V3
+}).passthrough();
 
 export type TaskStatus = z.infer<typeof TaskStatusSchema>;
 
@@ -20,21 +23,33 @@ export const TaskListRefSchema = z.object({
   id: z.union([z.number(), z.string()]),
   id_string: z.string().optional(),
   name: z.string(),
-});
+}).passthrough();
 
 export type TaskListRef = z.infer<typeof TaskListRefSchema>;
 
 /**
- * Task owner/assignee details
+ * Task owner/assignee details (legacy format)
  */
 export const TaskOwnerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  id: z.union([z.string(), z.number()]).optional(),
+  name: z.string().optional(),
   email: z.string().optional(),
   zpuid: z.string().optional(),
-});
+  zuid: z.union([z.number(), z.string()]).optional(), // V3
+  first_name: z.string().optional(), // V3
+  last_name: z.string().optional(), // V3
+  full_name: z.string().optional(), // V3
+}).passthrough();
 
 export type TaskOwner = z.infer<typeof TaskOwnerSchema>;
+
+/**
+ * V3 Duration object format
+ */
+export const V3DurationSchema = z.object({
+  type: z.string().optional(),
+  value: z.union([z.number(), z.string()]).optional(),
+}).passthrough();
 
 /**
  * Task details containing owners
@@ -67,12 +82,12 @@ export const TaskTagSchema = z.object({
 export type TaskTag = z.infer<typeof TaskTagSchema>;
 
 /**
- * Task from Zoho Projects API
+ * Task from Zoho Projects API (V3 compatible)
  */
 export const TaskSchema = z.object({
-  // Identification
-  id: z.number(),
-  id_string: z.string(),
+  // Identification - V3 uses string IDs
+  id: z.union([z.number(), z.string()]),
+  id_string: z.string().optional(), // Legacy field, not in V3
   key: z.string().optional(), // e.g., "DC-T666"
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -80,10 +95,18 @@ export const TaskSchema = z.object({
   // Status & Progress
   status: TaskStatusSchema.optional(),
   completed: z.boolean().optional(),
+  is_completed: z.boolean().optional(), // V3
   percent_complete: z.union([z.number(), z.string()]).optional(), // 0-100
-  priority: z.string().optional(), // None, Low, Medium, High, or custom
+  priority: z.union([
+    z.string(), // Legacy: None, Low, Medium, High, or custom
+    z.object({ // V3 format
+      id: z.string().optional(),
+      name: z.string().optional(),
+      color_hexcode: z.string().optional(),
+    }).passthrough(),
+  ]).optional(),
 
-  // Dates - Zoho returns MM-DD-YYYY format strings and epoch timestamps
+  // Dates - V3 uses ISO format, legacy uses MM-DD-YYYY
   start_date: z.string().nullable().optional(),
   start_date_long: z.number().nullable().optional(),
   end_date: z.string().nullable().optional(),
@@ -93,38 +116,59 @@ export const TaskSchema = z.object({
   created_time_format: z.string().optional(),
   last_updated_time: z.string().optional(),
   last_updated_time_long: z.number().optional(),
+  modified_time: z.string().optional(), // V3
 
-  // Duration & Work
-  duration: z.union([z.number(), z.string()]).nullable().optional(),
+  // Duration & Work - V3 returns object format
+  duration: z.union([z.number(), z.string(), V3DurationSchema]).nullable().optional(),
   duration_type: z.string().optional(), // "days", "hrs", etc.
-  work: z.string().nullable().optional(), // Format: "208:00"
+  work: z.union([
+    z.string(), // Legacy format: "208:00"
+    z.object({ // V3 format
+      hours: z.union([z.number(), z.string()]).optional(),
+      unit: z.string().optional(),
+    }).passthrough(),
+  ]).nullable().optional(),
   work_type: z.string().optional(), // "work_hrs_per_day", "work_in_percentage", "work_hours"
 
-  // Ownership & Assignment
-  created_by: z.union([z.number(), z.string()]).optional(),
+  // Ownership & Assignment - V3 uses object format
+  created_by: z.union([z.number(), z.string(), V3UserRefSchema]).optional(),
   created_person: z.string().optional(),
+  owner: z.union([V3UserRefSchema, TaskOwnerSchema]).optional(), // V3
+  updated_by: V3UserRefSchema.optional(), // V3
   details: TaskDetailsSchema.optional(),
 
   // Organization & Hierarchy
   tasklist: TaskListRefSchema.optional(),
+  task_list: TaskListRefSchema.optional(), // V3 alternative name
   milestone_id: z.union([z.number(), z.string()]).nullable().optional(),
+  milestone: z.object({ // V3 format
+    id: z.union([z.number(), z.string()]),
+    name: z.string().optional(),
+  }).passthrough().nullable().optional(),
   parent_task_id: z.union([z.number(), z.string()]).nullable().optional(),
+  parent_task: z.object({ // V3 format
+    id: z.union([z.number(), z.string()]),
+    name: z.string().optional(),
+  }).passthrough().nullable().optional(),
   root_task_id: z.union([z.number(), z.string()]).nullable().optional(),
   isparent: z.boolean().optional(),
+  is_parent: z.boolean().optional(), // V3
   subtasks: z.boolean().optional(),
+  has_subtasks: z.boolean().optional(), // V3
   depth: z.number().optional(),
   order_sequence: z.number().optional(),
 
   // Billing
   billingtype: z.string().optional(),
+  billing_type: z.string().optional(), // V3
   log_hours: LogHoursSchema.optional(),
 
-  // Project reference
+  // Project reference - V3 uses string IDs
   project: z.object({
-    id: z.number(),
+    id: z.union([z.number(), z.string()]),
     id_string: z.string().optional(),
-    name: z.string(),
-  }).optional(),
+    name: z.string().optional(),
+  }).passthrough().optional(),
 
   // Links
   link: z.object({
@@ -174,10 +218,14 @@ export const CreateTaskInputSchema = z.object({
   name: z.string().min(1),
   /** Task description */
   description: z.string().optional(),
-  /** Task list ID to add task to */
+  /** Task list ID to add task to (legacy) */
   tasklist_id: z.string().optional(),
-  /** Milestone/phase ID */
+  /** Task list object (V3 API) - Required for V3 */
+  tasklist: z.object({ id: z.string() }).optional(),
+  /** Milestone/phase ID (legacy) */
   milestone_id: z.string().optional(),
+  /** Milestone object (V3 API) */
+  milestone: z.object({ id: z.string() }).optional(),
   /** Parent task ID (for subtasks) */
   parent_task_id: z.string().optional(),
   /** Start date (MM-DD-YYYY format) */

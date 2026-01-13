@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockReport, mockReports, mockReportData } from "../../fixtures/reports.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("reports", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("reports", () => {
   describe("list", () => {
     it("should list all reports", async () => {
       server.use(
-        http.get(`${BASE_URL}/reports/`, () => {
+        http.get(`${BASE_URL}/reports`, () => {
           return HttpResponse.json({
             reports: mockReports,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -46,7 +46,7 @@ describe("reports", () => {
   describe("get", () => {
     it("should get a single report by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/reports/3001/`, () => {
+        http.get(`${BASE_URL}/reports/3001`, () => {
           return HttpResponse.json({ reports: [mockReport] });
         })
       );
@@ -61,7 +61,7 @@ describe("reports", () => {
   describe("execute", () => {
     it("should execute a report and return data", async () => {
       server.use(
-        http.get(`${BASE_URL}/reports/3001/data/`, () => {
+        http.get(`${BASE_URL}/reports/3001/data`, () => {
           return HttpResponse.json(mockReportData);
         })
       );
@@ -76,7 +76,7 @@ describe("reports", () => {
   describe("listForProject", () => {
     it("should list reports for a specific project", async () => {
       server.use(
-        http.get(`${BASE_URL}/projects/proj_001/reports/`, () => {
+        http.get(`${BASE_URL}/projects/proj_001/reports`, () => {
           return HttpResponse.json({
             reports: mockReports,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -95,7 +95,7 @@ describe("reports", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/reports/`, ({ request }) => {
+        http.get(`${BASE_URL}/reports`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json({
             reports: mockReports,
@@ -104,10 +104,10 @@ describe("reports", () => {
         })
       );
 
-      const result = await client.reports.list({ index: 0, range: 10 });
+      const result = await client.reports.list({ page: 1, per_page: 10 });
 
-      expect(capturedParams?.get("index")).toBe("0");
-      expect(capturedParams?.get("range")).toBe("10");
+      expect(capturedParams?.get("page")).toBe("1");
+      expect(capturedParams?.get("per_page")).toBe("10");
       expect(result.data).toBeDefined();
     });
   });

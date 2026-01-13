@@ -11,7 +11,7 @@ import {
 } from "../../fixtures/trash.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("trash", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -28,7 +28,7 @@ describe("trash", () => {
   describe("list", () => {
     it("should list all items in trash", async () => {
       server.use(
-        http.get(`${BASE_URL}/trash/`, () => {
+        http.get(`${BASE_URL}/trash`, () => {
           return HttpResponse.json({
             trash: mockTrashItems,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -49,7 +49,7 @@ describe("trash", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/trash/`, ({ request }) => {
+        http.get(`${BASE_URL}/trash`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json({
             trash: mockTrashItems.filter((i) => i.entity_type === "task"),
@@ -68,7 +68,7 @@ describe("trash", () => {
   describe("restore", () => {
     it("should restore an item from trash", async () => {
       server.use(
-        http.post(`${BASE_URL}/trash/task/task_deleted_001/restore/`, () => {
+        http.post(`${BASE_URL}/trash/task/task_deleted_001/restore`, () => {
           return HttpResponse.json(mockTrashRestoreResponse);
         })
       );
@@ -83,7 +83,7 @@ describe("trash", () => {
   describe("permanentDelete", () => {
     it("should permanently delete an item from trash", async () => {
       server.use(
-        http.delete(`${BASE_URL}/trash/task/task_deleted_001/`, () => {
+        http.delete(`${BASE_URL}/trash/task/task_deleted_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
@@ -97,7 +97,7 @@ describe("trash", () => {
   describe("empty", () => {
     it("should empty all trash", async () => {
       server.use(
-        http.delete(`${BASE_URL}/trash/`, () => {
+        http.delete(`${BASE_URL}/trash`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
@@ -107,7 +107,7 @@ describe("trash", () => {
 
     it("should empty trash for a specific entity type", async () => {
       server.use(
-        http.delete(`${BASE_URL}/trash/task/`, () => {
+        http.delete(`${BASE_URL}/trash/task`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
@@ -119,7 +119,7 @@ describe("trash", () => {
   describe("listForProject", () => {
     it("should list trash for a specific project", async () => {
       server.use(
-        http.get(`${BASE_URL}/trash/`, ({ request }) => {
+        http.get(`${BASE_URL}/trash`, ({ request }) => {
           const url = new URL(request.url);
           const projectId = url.searchParams.get("project_id");
           if (projectId === "proj_001") {

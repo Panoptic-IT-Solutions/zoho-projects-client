@@ -312,11 +312,31 @@ export {
   AttachmentListResponseSchema,
   AttachmentResponseSchema,
   UploadAttachmentInputSchema,
+  ListAttachmentsParamsSchema,
+  AssociateAttachmentInputSchema,
+  AddAttachmentsToEntityInputSchema,
   type Attachment,
   type AttachmentListResponse,
   type AttachmentResponse,
   type UploadAttachmentInput,
+  type ListAttachmentsParams,
+  type AssociateAttachmentInput,
+  type AddAttachmentsToEntityInput,
 } from "./attachments.js";
+
+// WorkDrive types (for V3 attachment uploads)
+export {
+  WorkDriveFileSchema,
+  WorkDriveUploadResponseSchema,
+  WorkDriveTeamFolderSchema,
+  WorkDriveTeamSchema,
+  WorkDriveUploadInputSchema,
+  type WorkDriveFile,
+  type WorkDriveUploadResponse,
+  type WorkDriveTeamFolder,
+  type WorkDriveTeam,
+  type WorkDriveUploadInput,
+} from "./workdrive.js";
 
 // Document types
 export {

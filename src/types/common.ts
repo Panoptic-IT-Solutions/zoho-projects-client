@@ -5,9 +5,9 @@ import { z } from "zod";
  * Zoho wraps responses in a resource-specific key (e.g., "projects", "tasks")
  */
 export const ZohoPageInfoSchema = z.object({
-  page: z.number(),
-  per_page: z.number(),
-  total_count: z.number().optional(),
+  page: z.coerce.number(),
+  per_page: z.coerce.number(),
+  total_count: z.coerce.number().optional(),
   has_more_page: z.boolean().optional(),
 });
 
@@ -26,10 +26,16 @@ export const ZohoErrorSchema = z.object({
 export type ZohoError = z.infer<typeof ZohoErrorSchema>;
 
 /**
- * Pagination parameters for list requests
+ * Pagination parameters for list requests (V3 API)
  */
 export interface ListParams {
+  /** Page number (1-indexed) - V3 API */
+  page?: number;
+  /** Number of items per page - V3 API */
+  per_page?: number;
+  /** @deprecated Use page instead - for backwards compatibility */
   index?: number;
+  /** @deprecated Use per_page instead - for backwards compatibility */
   range?: number;
   sort_column?: string;
   sort_order?: "ascending" | "descending";
@@ -59,14 +65,19 @@ export const ZohoLinkSchema = z.object({
 export type ZohoLink = z.infer<typeof ZohoLinkSchema>;
 
 /**
- * Owner/User reference used in nested objects
+ * Owner/User reference used in nested objects (V3 compatible)
  */
 export const OwnerRefSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  id: z.union([z.string(), z.number()]).optional(),
+  name: z.string().optional(),
   email: z.string().optional(),
   zpuid: z.string().optional(),
-});
+  // V3 fields
+  zuid: z.union([z.number(), z.string()]).optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  full_name: z.string().optional(),
+}).passthrough();
 
 export type OwnerRef = z.infer<typeof OwnerRefSchema>;
 

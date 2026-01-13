@@ -19,7 +19,7 @@ export const TagSchema = z.object({
   color_code: z.string().optional(),
 
   // Counts
-  count: z.number().optional(),
+  count: z.coerce.number().optional(),
 
   // Timestamps
   created_time: z.string().optional(),

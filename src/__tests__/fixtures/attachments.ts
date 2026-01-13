@@ -5,11 +5,10 @@ import { faker } from "@faker-js/faker";
 import type { Attachment } from "../../types/index.js";
 
 export function createAttachmentFixture(overrides: Partial<Attachment> = {}): Attachment {
-  const id = faker.number.int({ min: 100000, max: 999999 });
+  const id = faker.string.numeric(15);
   const fileName = faker.system.fileName();
   return {
     id,
-    id_string: id.toString(),
     name: fileName,
     filename: fileName,
     file_size: faker.number.int({ min: 1024, max: 10485760 }),
@@ -34,8 +33,7 @@ export function createAttachmentFixture(overrides: Partial<Attachment> = {}): At
     entity_id: faker.string.numeric(10),
     entity_name: faker.lorem.words(3),
     project: {
-      id: faker.number.int({ min: 100000, max: 999999 }),
-      id_string: faker.string.numeric(10),
+      id: faker.string.numeric(15),
       name: faker.company.name() + " Project",
     },
     created_time: faker.date.past().toISOString(),

@@ -20,7 +20,7 @@ export const ProfileSchema = z.object({
   is_system: z.boolean().optional(),
 
   // User count
-  users_count: z.number().optional(),
+  users_count: z.coerce.number().optional(),
 
   // Timestamps
   created_time: z.string().optional(),

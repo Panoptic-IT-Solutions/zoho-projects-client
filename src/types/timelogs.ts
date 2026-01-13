@@ -147,8 +147,10 @@ export type TimeLogListResponse = z.infer<typeof TimeLogListResponseSchema>;
  * Note: users_list, view_type, date, bill_status, and component_type are required by Zoho API
  */
 export interface TimeLogParams {
-  index?: number;
-  range?: number;
+  /** Page number (1-indexed) - V3 API */
+  page?: number;
+  /** Number of items per page - V3 API */
+  per_page?: number;
   /** User IDs - use "all" for all users, or comma-separated user IDs */
   users_list: string;
   /** View type for date range */

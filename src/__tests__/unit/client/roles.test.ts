@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockRole, mockRoles } from "../../fixtures/roles.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("roles", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("roles", () => {
   describe("list", () => {
     it("should list all roles", async () => {
       server.use(
-        http.get(`${BASE_URL}/roles/`, () => {
+        http.get(`${BASE_URL}/roles`, () => {
           return HttpResponse.json({
             roles: mockRoles,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -46,7 +46,7 @@ describe("roles", () => {
   describe("get", () => {
     it("should get a single role by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/roles/role_001/`, () => {
+        http.get(`${BASE_URL}/roles/role_001`, () => {
           return HttpResponse.json({ roles: [mockRole] });
         })
       );
@@ -63,7 +63,7 @@ describe("roles", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/roles/`, async ({ request }) => {
+        http.post(`${BASE_URL}/roles`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ roles: [mockRole] });
         })
@@ -87,7 +87,7 @@ describe("roles", () => {
       const updatedRole = { ...mockRole, name: "Senior Manager" };
 
       server.use(
-        http.put(`${BASE_URL}/roles/role_001/`, () => {
+        http.put(`${BASE_URL}/roles/role_001`, () => {
           return HttpResponse.json({ roles: [updatedRole] });
         })
       );
@@ -103,7 +103,7 @@ describe("roles", () => {
   describe("delete", () => {
     it("should delete a role", async () => {
       server.use(
-        http.delete(`${BASE_URL}/roles/role_001/`, () => {
+        http.delete(`${BASE_URL}/roles/role_001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

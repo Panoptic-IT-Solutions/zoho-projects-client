@@ -16,7 +16,7 @@ export const ProjectGroupSchema = z.object({
   description: z.string().nullable().optional(),
 
   // Counts
-  projects_count: z.number().optional(),
+  projects_count: z.coerce.number().optional(),
 
   // Owner
   owner_id: z.string().optional(),

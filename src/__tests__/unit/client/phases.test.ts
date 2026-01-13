@@ -13,7 +13,7 @@ import {
 
 const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "67890";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
 
 describe("phases", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -32,7 +32,7 @@ describe("phases", () => {
       const mockPhases = createPhaseListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/milestones/`, () => {
+        http.get(`${BASE_URL}/milestones`, () => {
           return HttpResponse.json(createPhaseListResponse(mockPhases));
         })
       );
@@ -52,7 +52,7 @@ describe("phases", () => {
       const mockPhase = createPhaseFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/milestones/123/`, () => {
+        http.get(`${BASE_URL}/milestones/123`, () => {
           return HttpResponse.json({ milestones: [mockPhase] });
         })
       );
@@ -67,7 +67,7 @@ describe("phases", () => {
       const newPhase = createPhaseFixture({ name: "New Milestone" });
 
       server.use(
-        http.post(`${BASE_URL}/milestones/`, async () => {
+        http.post(`${BASE_URL}/milestones`, async () => {
           return HttpResponse.json({ milestones: [newPhase] });
         })
       );
@@ -86,7 +86,7 @@ describe("phases", () => {
       const updatedPhase = createPhaseFixture({ id: 123, id_string: "123", name: "Updated Milestone" });
 
       server.use(
-        http.put(`${BASE_URL}/milestones/123/`, () => {
+        http.put(`${BASE_URL}/milestones/123`, () => {
           return HttpResponse.json({ milestones: [updatedPhase] });
         })
       );
@@ -99,7 +99,7 @@ describe("phases", () => {
   describe("delete", () => {
     it("should delete a phase", async () => {
       server.use(
-        http.delete(`${BASE_URL}/milestones/123/`, () => {
+        http.delete(`${BASE_URL}/milestones/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

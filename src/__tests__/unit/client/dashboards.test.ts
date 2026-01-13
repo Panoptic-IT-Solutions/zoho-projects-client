@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockDashboard, mockDashboards } from "../../fixtures/dashboards.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("dashboards", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("dashboards", () => {
   describe("list", () => {
     it("should list all dashboards", async () => {
       server.use(
-        http.get(`${BASE_URL}/dashboards/`, () => {
+        http.get(`${BASE_URL}/dashboards`, () => {
           return HttpResponse.json({
             dashboards: mockDashboards,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -46,7 +46,7 @@ describe("dashboards", () => {
   describe("get", () => {
     it("should get a single dashboard by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/dashboards/1001/`, () => {
+        http.get(`${BASE_URL}/dashboards/1001`, () => {
           return HttpResponse.json({ dashboards: [mockDashboard] });
         })
       );
@@ -63,7 +63,7 @@ describe("dashboards", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/dashboards/`, async ({ request }) => {
+        http.post(`${BASE_URL}/dashboards`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ dashboards: [mockDashboard] });
         })
@@ -88,7 +88,7 @@ describe("dashboards", () => {
       const updatedDashboard = { ...mockDashboard, name: "Team Overview" };
 
       server.use(
-        http.put(`${BASE_URL}/dashboards/1001/`, () => {
+        http.put(`${BASE_URL}/dashboards/1001`, () => {
           return HttpResponse.json({ dashboards: [updatedDashboard] });
         })
       );
@@ -104,7 +104,7 @@ describe("dashboards", () => {
   describe("delete", () => {
     it("should delete a dashboard", async () => {
       server.use(
-        http.delete(`${BASE_URL}/dashboards/1001/`, () => {
+        http.delete(`${BASE_URL}/dashboards/1001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

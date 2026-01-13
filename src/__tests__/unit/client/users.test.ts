@@ -12,7 +12,7 @@ import {
 } from "../../fixtures/users.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("users", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -31,7 +31,7 @@ describe("users", () => {
       const mockUsers = createUserListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/users/`, () => {
+        http.get(`${BASE_URL}/users`, () => {
           return HttpResponse.json(createUserListResponse(mockUsers));
         })
       );
@@ -48,7 +48,7 @@ describe("users", () => {
 
     it("should handle empty response", async () => {
       server.use(
-        http.get(`${BASE_URL}/users/`, () => {
+        http.get(`${BASE_URL}/users`, () => {
           return HttpResponse.json(createUserListResponse([]));
         })
       );
@@ -63,7 +63,7 @@ describe("users", () => {
       const mockUser = createUserFixture({ id: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/users/123/`, () => {
+        http.get(`${BASE_URL}/users/123`, () => {
           return HttpResponse.json({ users: [mockUser] });
         })
       );
@@ -81,12 +81,12 @@ describe("users", () => {
       let requestCount = 0;
 
       server.use(
-        http.get(`${BASE_URL}/users/`, ({ request }) => {
+        http.get(`${BASE_URL}/users`, ({ request }) => {
           requestCount++;
           const url = new URL(request.url);
-          const index = parseInt(url.searchParams.get("index") || "0");
+          const page = parseInt(url.searchParams.get("page") || "1");
 
-          if (index === 0) {
+          if (page === 1) {
             return HttpResponse.json(createUserListResponse(page1, true));
           } else {
             return HttpResponse.json(createUserListResponse(page2, false));
@@ -106,7 +106,7 @@ describe("users", () => {
       const mockUsers = createUserListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/users/`, () => {
+        http.get(`${BASE_URL}/users`, () => {
           return HttpResponse.json(createUserListResponse(mockUsers));
         })
       );

@@ -13,7 +13,7 @@ import {
 } from "../../fixtures/modules.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("modules", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -30,7 +30,7 @@ describe("modules", () => {
   describe("list", () => {
     it("should list all modules", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/modules/`, () => {
+        http.get(`${BASE_URL}/settings/modules`, () => {
           return HttpResponse.json({ modules: mockModules });
         })
       );
@@ -48,7 +48,7 @@ describe("modules", () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
-        http.get(`${BASE_URL}/settings/modules/`, ({ request }) => {
+        http.get(`${BASE_URL}/settings/modules`, ({ request }) => {
           capturedParams = new URL(request.url).searchParams;
           return HttpResponse.json({
             modules: mockModules.filter((m) => m.is_customized),
@@ -67,7 +67,7 @@ describe("modules", () => {
   describe("get", () => {
     it("should get a single module by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/modules/1001/`, () => {
+        http.get(`${BASE_URL}/settings/modules/1001`, () => {
           return HttpResponse.json({ modules: [mockModule] });
         })
       );
@@ -82,7 +82,7 @@ describe("modules", () => {
   describe("getFields", () => {
     it("should get fields for a module", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/modules/1001/fields/`, () => {
+        http.get(`${BASE_URL}/settings/modules/1001/fields`, () => {
           return HttpResponse.json({ fields: mockModuleFields });
         })
       );
@@ -101,7 +101,7 @@ describe("modules", () => {
   describe("getField", () => {
     it("should get a specific field", async () => {
       server.use(
-        http.get(`${BASE_URL}/settings/modules/1001/fields/cf_100/`, () => {
+        http.get(`${BASE_URL}/settings/modules/1001/fields/cf_100`, () => {
           return HttpResponse.json({ fields: [mockModuleField] });
         })
       );
@@ -118,7 +118,7 @@ describe("modules", () => {
     it("should get project-specific fields", async () => {
       server.use(
         http.get(
-          `${BASE_URL}/projects/proj_001/settings/modules/1001/fields/`,
+          `${BASE_URL}/projects/proj_001/settings/modules/1001/fields`,
           () => {
             return HttpResponse.json({ fields: mockModuleFields });
           }

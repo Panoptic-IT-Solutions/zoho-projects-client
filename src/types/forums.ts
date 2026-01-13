@@ -41,8 +41,8 @@ export const ForumSchema = z.object({
   posted_person: z.string().optional(),
 
   // Counts
-  comment_count: z.number().optional(),
-  view_count: z.number().optional(),
+  comment_count: z.coerce.number().optional(),
+  view_count: z.coerce.number().optional(),
 
   // Project reference
   project: z.object({

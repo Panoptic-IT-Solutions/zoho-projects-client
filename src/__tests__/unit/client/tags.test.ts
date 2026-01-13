@@ -12,7 +12,7 @@ import {
 } from "../../fixtures/tags.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("tags", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -31,7 +31,7 @@ describe("tags", () => {
       const mockTags = createTagListFixture(3);
 
       server.use(
-        http.get(`${BASE_URL}/tags/`, () => {
+        http.get(`${BASE_URL}/tags`, () => {
           return HttpResponse.json(createTagListResponse(mockTags));
         })
       );
@@ -52,7 +52,7 @@ describe("tags", () => {
       const mockTag = createTagFixture({ id: 123, id_string: "123" });
 
       server.use(
-        http.get(`${BASE_URL}/tags/123/`, () => {
+        http.get(`${BASE_URL}/tags/123`, () => {
           return HttpResponse.json({ tags: [mockTag] });
         })
       );
@@ -68,7 +68,7 @@ describe("tags", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/tags/`, async ({ request }) => {
+        http.post(`${BASE_URL}/tags`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ tags: [newTag] });
         })
@@ -86,7 +86,7 @@ describe("tags", () => {
       const updatedTag = createTagFixture({ id: 123, id_string: "123", name: "Updated Tag" });
 
       server.use(
-        http.put(`${BASE_URL}/tags/123/`, () => {
+        http.put(`${BASE_URL}/tags/123`, () => {
           return HttpResponse.json({ tags: [updatedTag] });
         })
       );
@@ -99,7 +99,7 @@ describe("tags", () => {
   describe("delete", () => {
     it("should delete a tag", async () => {
       server.use(
-        http.delete(`${BASE_URL}/tags/123/`, () => {
+        http.delete(`${BASE_URL}/tags/123`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
@@ -115,12 +115,12 @@ describe("tags", () => {
       let requestCount = 0;
 
       server.use(
-        http.get(`${BASE_URL}/tags/`, ({ request }) => {
+        http.get(`${BASE_URL}/tags`, ({ request }) => {
           requestCount++;
           const url = new URL(request.url);
-          const index = parseInt(url.searchParams.get("index") || "0");
+          const page = parseInt(url.searchParams.get("page") || "1");
 
-          if (index === 0) {
+          if (page === 1) {
             return HttpResponse.json(createTagListResponse(page1, true));
           } else {
             return HttpResponse.json(createTagListResponse(page2, false));

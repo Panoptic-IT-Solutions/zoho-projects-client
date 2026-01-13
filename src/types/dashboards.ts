@@ -35,7 +35,7 @@ export const DashboardSchema = z.object({
   }).optional(),
 
   // Widget count
-  widget_count: z.number().optional(),
+  widget_count: z.coerce.number().optional(),
 
   // Layout
   layout: z.string().optional(),

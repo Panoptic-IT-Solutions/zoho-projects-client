@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockWidget, mockWidgets } from "../../fixtures/widgets.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("widgets", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("widgets", () => {
   describe("list", () => {
     it("should list widgets for a dashboard", async () => {
       server.use(
-        http.get(`${BASE_URL}/dashboards/1001/widgets/`, () => {
+        http.get(`${BASE_URL}/dashboards/1001/widgets`, () => {
           return HttpResponse.json({
             widgets: mockWidgets,
             page_info: { page: 1, per_page: 100, has_more_page: false },
@@ -47,7 +47,7 @@ describe("widgets", () => {
   describe("get", () => {
     it("should get a single widget by ID", async () => {
       server.use(
-        http.get(`${BASE_URL}/dashboards/1001/widgets/2001/`, () => {
+        http.get(`${BASE_URL}/dashboards/1001/widgets/2001`, () => {
           return HttpResponse.json({ widgets: [mockWidget] });
         })
       );
@@ -65,7 +65,7 @@ describe("widgets", () => {
       let capturedBody: unknown;
 
       server.use(
-        http.post(`${BASE_URL}/dashboards/1001/widgets/`, async ({ request }) => {
+        http.post(`${BASE_URL}/dashboards/1001/widgets`, async ({ request }) => {
           capturedBody = await request.json();
           return HttpResponse.json({ widgets: [mockWidget] });
         })
@@ -90,7 +90,7 @@ describe("widgets", () => {
       const updatedWidget = { ...mockWidget, name: "Updated Chart" };
 
       server.use(
-        http.put(`${BASE_URL}/dashboards/1001/widgets/2001/`, () => {
+        http.put(`${BASE_URL}/dashboards/1001/widgets/2001`, () => {
           return HttpResponse.json({ widgets: [updatedWidget] });
         })
       );
@@ -107,7 +107,7 @@ describe("widgets", () => {
   describe("delete", () => {
     it("should delete a widget", async () => {
       server.use(
-        http.delete(`${BASE_URL}/dashboards/1001/widgets/2001/`, () => {
+        http.delete(`${BASE_URL}/dashboards/1001/widgets/2001`, () => {
           return new HttpResponse(null, { status: 204 });
         })
       );

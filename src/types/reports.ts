@@ -112,7 +112,7 @@ export type ReportDataRow = z.infer<typeof ReportDataRowSchema>;
 export const ReportDataResponseSchema = z.object({
   data: z.array(ReportDataRowSchema),
   columns: z.array(ReportColumnSchema).optional(),
-  total_count: z.number().optional(),
+  total_count: z.coerce.number().optional(),
   page_info: ZohoPageInfoSchema.optional(),
 });
 

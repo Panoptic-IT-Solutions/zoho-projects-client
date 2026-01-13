@@ -85,11 +85,25 @@ Zoho requires OAuth 2.0 with a refresh token. Here's how to get one:
 
 ### 2. Generate a Refresh Token
 
+#### Option A: Using the Helper Script (Recommended)
+
+The easiest way to get a refresh token with all required scopes:
+
+```bash
+# Clone the repo and run the helper script
+npx tsx scripts/get-refresh-token.ts
+```
+
+This will:
+- Start a local server to catch the OAuth callback
+- Open your browser to authorize the app
+- Automatically exchange the code for tokens
+- Output the refresh token to add to your `.env` file
+
+#### Option B: Manual Setup
+
 1. In API Console, select your client → **Generate Code** → **Self Client**
-2. Enter scope:
-   ```
-   ZohoProjects.projects.ALL,ZohoProjects.tasks.ALL,ZohoProjects.timesheets.ALL,ZohoProjects.users.ALL,ZohoProjects.portals.ALL,ZohoProjects.bugs.ALL,ZohoProjects.events.ALL,ZohoProjects.forums.ALL,ZohoProjects.documents.ALL
-   ```
+2. Enter the required scopes (see below)
 3. Click **Create** and copy the authorization code
 4. Exchange it for a refresh token (within 2 minutes):
 
@@ -102,6 +116,33 @@ curl -X POST "https://accounts.zoho.com/oauth/v2/token" \
 ```
 
 5. Copy the `refresh_token` from the response (it doesn't expire unless revoked)
+
+### Required OAuth Scopes
+
+For full V3 API functionality, request these scopes:
+
+```
+ZohoProjects.projects.ALL,ZohoProjects.tasks.ALL,ZohoProjects.tasklists.ALL,ZohoProjects.portals.READ,ZohoProjects.users.ALL,ZohoProjects.timesheets.ALL,ZohoProjects.bugs.ALL,ZohoProjects.milestones.ALL,ZohoProjects.events.ALL,ZohoProjects.forums.ALL,ZohoProjects.documents.ALL,ZohoProjects.tags.ALL,ZohoProjects.status.READ,ZohoProjects.search.READ
+```
+
+| Scope | Description |
+|-------|-------------|
+| `ZohoProjects.projects.ALL` | Create, read, update, delete projects |
+| `ZohoProjects.tasks.ALL` | Full task management |
+| `ZohoProjects.tasklists.ALL` | Create and manage task lists |
+| `ZohoProjects.portals.READ` | Read portal information |
+| `ZohoProjects.users.ALL` | User management |
+| `ZohoProjects.timesheets.ALL` | Time logging |
+| `ZohoProjects.bugs.ALL` | Issue/bug tracking |
+| `ZohoProjects.milestones.ALL` | Milestone/phase management |
+| `ZohoProjects.events.ALL` | Calendar events |
+| `ZohoProjects.forums.ALL` | Discussion forums |
+| `ZohoProjects.documents.ALL` | Document management |
+| `ZohoProjects.tags.ALL` | Tag management |
+| `ZohoProjects.status.READ` | Read status configurations |
+| `ZohoProjects.search.READ` | Global search |
+
+> **Note:** Missing scopes will result in `INVALID_OAUTHSCOPE` errors for specific operations
 
 ## Configuration
 
@@ -188,8 +229,8 @@ The client provides access to 26 API namespaces:
 ### Projects
 
 ```typescript
-// List with pagination
-const { data, pageInfo } = await client.projects.list({ index: 0, range: 100 });
+// List with pagination (V3 API uses page/per_page)
+const { data, pageInfo } = await client.projects.list({ page: 1, per_page: 100 });
 
 // Get all projects (auto-pagination)
 const projects = await client.projects.listAll();
@@ -220,7 +261,10 @@ const allTasks = await client.tasks.listAllAcrossProjects();
 
 // CRUD operations
 const task = await client.tasks.get("project_id", "task_id");
-await client.tasks.create("project_id", { name: "New Task", tasklist_id: "list_id" });
+await client.tasks.create("project_id", {
+  name: "New Task",
+  tasklist: { id: "list_id" },  // V3 API uses nested object
+});
 await client.tasks.update("project_id", "task_id", { status: "completed" });
 await client.tasks.delete("project_id", "task_id");
 ```

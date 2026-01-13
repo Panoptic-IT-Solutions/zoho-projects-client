@@ -8,7 +8,7 @@ import { createZohoProjectsClient } from "../../../client.js";
 import { mockTimer, mockTimers, mockPausedTimer } from "../../fixtures/timers.js";
 
 const TEST_PORTAL_ID = "12345";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}`;
 
 describe("timers", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -25,7 +25,7 @@ describe("timers", () => {
   describe("list", () => {
     it("should list all running timers", async () => {
       server.use(
-        http.get(`${BASE_URL}/mytimers/`, () => {
+        http.get(`${BASE_URL}/mytimers`, () => {
           return HttpResponse.json({ timers: mockTimers });
         })
       );
@@ -41,7 +41,7 @@ describe("timers", () => {
 
     it("should return empty array when no timers", async () => {
       server.use(
-        http.get(`${BASE_URL}/mytimers/`, () => {
+        http.get(`${BASE_URL}/mytimers`, () => {
           return new HttpResponse("", { status: 204 });
         })
       );
@@ -55,7 +55,7 @@ describe("timers", () => {
   describe("getCurrent", () => {
     it("should get the current running timer", async () => {
       server.use(
-        http.get(`${BASE_URL}/mytimers/`, () => {
+        http.get(`${BASE_URL}/mytimers`, () => {
           return HttpResponse.json({ timers: [mockTimer] });
         })
       );
@@ -68,7 +68,7 @@ describe("timers", () => {
 
     it("should return null when no timer is running", async () => {
       server.use(
-        http.get(`${BASE_URL}/mytimers/`, () => {
+        http.get(`${BASE_URL}/mytimers`, () => {
           return new HttpResponse("", { status: 204 });
         })
       );
@@ -83,7 +83,7 @@ describe("timers", () => {
     it("should start a timer for a task", async () => {
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/tasks/task_123/timer/start/`,
+          `${BASE_URL}/projects/proj_001/tasks/task_123/timer/start`,
           () => {
             return HttpResponse.json({ timer: mockTimer });
           }
@@ -105,7 +105,7 @@ describe("timers", () => {
       const stoppedTimer = { ...mockTimer, status: "stopped" as const };
 
       server.use(
-        http.post(`${BASE_URL}/mytimers/stop/`, () => {
+        http.post(`${BASE_URL}/mytimers/stop`, () => {
           return HttpResponse.json({ timer: stoppedTimer });
         })
       );
@@ -119,7 +119,7 @@ describe("timers", () => {
   describe("pause", () => {
     it("should pause the current timer", async () => {
       server.use(
-        http.post(`${BASE_URL}/mytimers/pause/`, () => {
+        http.post(`${BASE_URL}/mytimers/pause`, () => {
           return HttpResponse.json({ timer: mockPausedTimer });
         })
       );
@@ -133,7 +133,7 @@ describe("timers", () => {
   describe("resume", () => {
     it("should resume a paused timer", async () => {
       server.use(
-        http.post(`${BASE_URL}/mytimers/resume/`, () => {
+        http.post(`${BASE_URL}/mytimers/resume`, () => {
           return HttpResponse.json({ timer: mockTimer });
         })
       );
@@ -148,7 +148,7 @@ describe("timers", () => {
     it("should start a timer for a specific task", async () => {
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/tasks/task_123/timer/start/`,
+          `${BASE_URL}/projects/proj_001/tasks/task_123/timer/start`,
           () => {
             return HttpResponse.json({ timer: mockTimer });
           }
@@ -170,7 +170,7 @@ describe("timers", () => {
 
       server.use(
         http.post(
-          `${BASE_URL}/projects/proj_001/issues/issue_123/timer/start/`,
+          `${BASE_URL}/projects/proj_001/issues/issue_123/timer/start`,
           () => {
             return HttpResponse.json({ timer: issueTimer });
           }

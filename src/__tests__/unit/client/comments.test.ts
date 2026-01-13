@@ -15,7 +15,7 @@ const TEST_PORTAL_ID = "12345";
 const TEST_PROJECT_ID = "67890";
 const TEST_TASK_ID = "11111";
 const TEST_ISSUE_ID = "22222";
-const BASE_URL = `https://projectsapi.zoho.com/restapi/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
+const BASE_URL = `https://projectsapi.zoho.com/api/v3/portal/${TEST_PORTAL_ID}/projects/${TEST_PROJECT_ID}`;
 
 describe("comments", () => {
   let client: ReturnType<typeof createZohoProjectsClient>;
@@ -35,7 +35,7 @@ describe("comments", () => {
         const mockComments = createCommentListFixture(3);
 
         server.use(
-          http.get(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments/`, () => {
+          http.get(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments`, () => {
             return HttpResponse.json(createCommentListResponse(mockComments));
           })
         );
@@ -56,7 +56,7 @@ describe("comments", () => {
         const newComment = createCommentFixture({ content: "New comment on task" });
 
         server.use(
-          http.post(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments/`, async () => {
+          http.post(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments`, async () => {
             return HttpResponse.json({ comments: [newComment] });
           })
         );
@@ -71,7 +71,7 @@ describe("comments", () => {
     describe("delete", () => {
       it("should delete a comment from a task", async () => {
         server.use(
-          http.delete(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments/333/`, () => {
+          http.delete(`${BASE_URL}/tasks/${TEST_TASK_ID}/comments/333`, () => {
             return new HttpResponse(null, { status: 204 });
           })
         );
@@ -88,7 +88,7 @@ describe("comments", () => {
         const mockComments = createCommentListFixture(3);
 
         server.use(
-          http.get(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments/`, () => {
+          http.get(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments`, () => {
             return HttpResponse.json(createCommentListResponse(mockComments));
           })
         );
@@ -105,7 +105,7 @@ describe("comments", () => {
         const newComment = createCommentFixture({ content: "New comment on bug" });
 
         server.use(
-          http.post(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments/`, async () => {
+          http.post(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments`, async () => {
             return HttpResponse.json({ comments: [newComment] });
           })
         );
@@ -120,7 +120,7 @@ describe("comments", () => {
     describe("delete", () => {
       it("should delete a comment from an issue", async () => {
         server.use(
-          http.delete(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments/333/`, () => {
+          http.delete(`${BASE_URL}/bugs/${TEST_ISSUE_ID}/comments/333`, () => {
             return new HttpResponse(null, { status: 204 });
           })
         );

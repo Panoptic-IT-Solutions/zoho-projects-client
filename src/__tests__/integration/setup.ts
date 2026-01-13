@@ -1,7 +1,11 @@
 /**
  * Integration test setup - creates a real client for testing against Zoho API
  */
+import { config } from "dotenv";
 import { createZohoProjectsClient, type ZohoProjectsClient } from "../../client.js";
+
+// Load .env file
+config();
 
 // Cached client instance
 let client: ZohoProjectsClient | null = null;
@@ -31,6 +35,8 @@ export function getTestClient(): ZohoProjectsClient {
     clientSecret,
     refreshToken,
     portalId,
+    apiUrl: process.env.ZOHO_API_URL,
+    accountsUrl: process.env.ZOHO_ACCOUNTS_URL,
   });
 
   return client;
@@ -53,7 +59,8 @@ export async function getTestProjectId(): Promise<string> {
     throw new Error("Integration tests require at least one project in the portal");
   }
 
-  testProjectId = projects[0].id_string;
+  // V3 API uses 'id' as string directly, legacy uses 'id_string'
+  testProjectId = String(projects[0].id);
   return testProjectId;
 }
 
