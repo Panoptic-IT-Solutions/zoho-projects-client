@@ -94,13 +94,15 @@ export class TokenManager {
     try {
       const response = await this.httpClient.post<TokenResponse>(
         "/oauth/v2/token",
-        null,
+        new URLSearchParams({
+          grant_type: "refresh_token",
+          client_id: this.config.clientId,
+          client_secret: this.config.clientSecret,
+          refresh_token: this.config.refreshToken,
+        }),
         {
-          params: {
-            grant_type: "refresh_token",
-            client_id: this.config.clientId,
-            client_secret: this.config.clientSecret,
-            refresh_token: this.config.refreshToken,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
           },
         }
       );
