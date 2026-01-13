@@ -479,6 +479,30 @@ ZOHO_API_URL=https://projectsapi.zoho.com
 ZOHO_ACCOUNTS_URL=https://accounts.zoho.com
 ```
 
+## Changelog
+
+### 1.1.0 (2026-01-13)
+
+#### V3 API Response Format Fixes
+- **Fixed count field type coercion**: Changed all count fields (`open`, `closed`, `*_count`, `page`, `per_page`, `total_count`) to use `z.coerce.number()` to handle Zoho API returning counts as strings (e.g., `"0"` instead of `0`)
+- **Fixed V3 response parsing**: V3 API returns data as direct arrays, not wrapped in objects like `{ projects: [...] }`. Updated parsing logic throughout.
+
+#### File Attachments
+- **Added file attachment workflow documentation**: Complete guide for attaching files to tasks using WorkDrive integration
+- **Method 1 (Recommended)**: Direct upload via legacy `/restapi/` endpoint with `uploaddoc` form field - single request handles both upload and association
+- **Method 2 (Advanced)**: Manual WorkDrive upload with separate registration step for more control
+- **Added OAuth scopes for attachments**: `ZohoPC.files.ALL`, `WorkDrive.team.ALL`, `WorkDrive.workspace.ALL`, `WorkDrive.files.ALL`, `WorkDrive.teamfolders.ALL`
+
+#### Helper Scripts
+- **`scripts/get-refresh-token.ts`**: OAuth helper that opens browser, catches callback, and outputs refresh token with all required scopes
+- **`scripts/delete-test-project.ts`**: Delete projects using V3 API (`POST /projects/{id}/trash`)
+- **`scripts/test-workdrive-upload.ts`**: Test WorkDrive upload and task attachment workflow
+
+#### V3 API Discoveries
+- **Project delete**: V3 uses `POST /api/v3/portal/{portalId}/projects/{projectId}/trash` (not `DELETE`)
+- **Attachments**: V3 returns `{ attachment: [...] }` (singular key), not `{ attachments: [...] }`
+- **Projects list**: V3 returns direct array, not wrapped in `{ projects: [...] }`
+
 ## License
 
 MIT
