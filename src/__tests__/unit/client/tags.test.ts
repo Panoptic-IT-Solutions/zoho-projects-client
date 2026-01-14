@@ -76,7 +76,7 @@ describe("tags", () => {
 
       const result = await client.tags.create({ name: "New Tag" });
 
-      expect(capturedBody).toMatchObject({ name: "New Tag" });
+      expect(capturedBody).toMatchObject({ tags: [{ name: "New Tag" }] });
       expect(result.name).toBe("New Tag");
     });
   });
