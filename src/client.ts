@@ -1012,21 +1012,37 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
       },
 
       async create(data: CreateTagInput): Promise<Tag> {
+        // Zoho V3 API requires FormData for tag creation
+        const tagData = {
+          name: data.name,
+          color_class: data.color_class || "bg-tag1", // Default teal color
+        };
+        const formData = new FormData();
+        formData.append("tags", JSON.stringify([tagData]));
+
         const response = await requestWithValidation(
           `${basePath}/tags`,
           z.object({ tags: z.array(TagSchema) }),
-          { method: "POST", data: { tags: [data] } }
+          {
+            method: "POST",
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
         return response.tags[0];
       },
 
       async update(tagId: string, data: UpdateTagInput): Promise<Tag> {
+        // V3 API returns { tags: {...} } (object) for PATCH, not array
+        const schema = z.object({
+          tags: z.union([z.array(TagSchema), TagSchema]),
+        });
         const response = await requestWithValidation(
           `${basePath}/tags/${tagId}`,
-          z.object({ tags: z.array(TagSchema) }),
-          { method: "PUT", data }
+          schema,
+          { method: "PATCH", data }
         );
-        return response.tags[0];
+        return Array.isArray(response.tags) ? response.tags[0] : response.tags;
       },
 
       async delete(tagId: string): Promise<void> {

@@ -65,18 +65,24 @@ describe("tags", () => {
   describe("create", () => {
     it("should create a tag", async () => {
       const newTag = createTagFixture({ name: "New Tag" });
-      let capturedBody: unknown;
+      let capturedFormData: string | null = null;
 
       server.use(
         http.post(`${BASE_URL}/tags`, async ({ request }) => {
-          capturedBody = await request.json();
+          // FormData is sent as multipart - get the raw text
+          const text = await request.text();
+          // Extract tags JSON from form data
+          const match = text.match(/name="tags"\r\n\r\n(.+?)\r\n/);
+          capturedFormData = match ? match[1] : null;
           return HttpResponse.json({ tags: [newTag] });
         })
       );
 
       const result = await client.tags.create({ name: "New Tag" });
 
-      expect(capturedBody).toMatchObject({ tags: [{ name: "New Tag" }] });
+      expect(capturedFormData).toBeTruthy();
+      const parsed = JSON.parse(capturedFormData!);
+      expect(parsed[0].name).toBe("New Tag");
       expect(result.name).toBe("New Tag");
     });
   });
@@ -86,8 +92,9 @@ describe("tags", () => {
       const updatedTag = createTagFixture({ id: 123, id_string: "123", name: "Updated Tag" });
 
       server.use(
-        http.put(`${BASE_URL}/tags/123`, () => {
-          return HttpResponse.json({ tags: [updatedTag] });
+        // V3 API uses PATCH for update, returns single tag object not array
+        http.patch(`${BASE_URL}/tags/123`, () => {
+          return HttpResponse.json({ tags: updatedTag });
         })
       );
 

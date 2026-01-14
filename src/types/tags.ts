@@ -9,17 +9,19 @@ import { ZohoPageInfoSchema } from "./common.js";
  * Tag from Zoho Projects API
  */
 export const TagSchema = z.object({
-  // Identification
-  id: z.number(),
-  id_string: z.string(),
+  // Identification - V3 API returns id as string, id_string may be missing
+  id: z.union([z.number(), z.string()]),
+  id_string: z.string().optional(),
   name: z.string(),
 
   // Appearance
   color_class: z.string().optional(),
   color_code: z.string().optional(),
+  color_hexcode: z.string().optional(),
 
-  // Counts
+  // Counts - V3 uses usage_count
   count: z.coerce.number().optional(),
+  usage_count: z.coerce.number().optional(),
 
   // Timestamps
   created_time: z.string().optional(),
