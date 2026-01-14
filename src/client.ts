@@ -136,6 +136,7 @@ import {
   type UpdateUserInput,
   type CreateTagInput,
   type UpdateTagInput,
+  type TagEntityTypeValue,
   type CreateRoleInput,
   type UpdateRoleInput,
   type CreateProfileInput,
@@ -1047,6 +1048,52 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
 
       async delete(tagId: string): Promise<void> {
         await request(`${basePath}/tags/${tagId}`, { method: "DELETE" });
+      },
+
+      /**
+       * Associate a tag with an entity in a project
+       * @param projectId - The project ID
+       * @param tagId - The tag ID to associate
+       * @param entityId - The entity ID (task ID, bug ID, etc.)
+       * @param entityType - The entity type (use TagEntityType enum)
+       */
+      async associate(
+        projectId: string,
+        tagId: string,
+        entityId: string,
+        entityType: TagEntityTypeValue
+      ): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/tags/associate`, {
+          method: "POST",
+          params: {
+            tag_id: tagId,
+            entity_id: entityId,
+            entityType,
+          },
+        });
+      },
+
+      /**
+       * Dissociate a tag from an entity in a project
+       * @param projectId - The project ID
+       * @param tagId - The tag ID to dissociate
+       * @param entityId - The entity ID (task ID, bug ID, etc.)
+       * @param entityType - The entity type (use TagEntityType enum)
+       */
+      async dissociate(
+        projectId: string,
+        tagId: string,
+        entityId: string,
+        entityType: TagEntityTypeValue
+      ): Promise<void> {
+        await request(`${basePath}/projects/${projectId}/tags/dissociate`, {
+          method: "POST",
+          params: {
+            tag_id: tagId,
+            entity_id: entityId,
+            entityType,
+          },
+        });
       },
     },
 
