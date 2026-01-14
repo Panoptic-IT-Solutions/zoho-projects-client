@@ -258,13 +258,6 @@ export const CreateTaskInputSchema = z.object({
   }).optional(),
   /** Custom field values */
   custom_fields: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-  /** Tags to add/remove (by name) */
-  tags: z.object({
-    add: z.array(z.string()).optional(),
-    remove: z.array(z.string()).optional(),
-  }).optional(),
-  /** Tag IDs to associate with the task */
-  tag_ids: z.array(z.string()).optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;

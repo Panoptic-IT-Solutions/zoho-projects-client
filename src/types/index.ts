@@ -111,11 +111,13 @@ export {
   TagResponseSchema,
   CreateTagInputSchema,
   UpdateTagInputSchema,
+  TagEntityType,
   type Tag,
   type TagListResponse,
   type TagResponse,
   type CreateTagInput,
   type UpdateTagInput,
+  type TagEntityTypeValue,
 } from "./tags.js";
 
 // Role types

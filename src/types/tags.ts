@@ -69,3 +69,22 @@ export type CreateTagInput = z.infer<typeof CreateTagInputSchema>;
 export const UpdateTagInputSchema = CreateTagInputSchema.partial();
 
 export type UpdateTagInput = z.infer<typeof UpdateTagInputSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAG ENTITY TYPES (for associate/dissociate)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Entity types that can be tagged in Zoho Projects
+ */
+export const TagEntityType = {
+  PROJECT: 2,
+  MILESTONE: 3,
+  TASKLIST: 4,
+  TASK: 5,
+  BUG: 6,
+  FORUM: 7,
+  STATUS: 8,
+} as const;
+
+export type TagEntityTypeValue = (typeof TagEntityType)[keyof typeof TagEntityType];

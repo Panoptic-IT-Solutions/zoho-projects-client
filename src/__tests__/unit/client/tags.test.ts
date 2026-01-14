@@ -141,4 +141,46 @@ describe("tags", () => {
       expect(result).toHaveLength(150);
     });
   });
+
+  describe("associate", () => {
+    it("should associate a tag with a task", async () => {
+      let capturedParams: URLSearchParams | null = null;
+
+      server.use(
+        http.post(`${BASE_URL}/projects/proj-123/tags/associate`, ({ request }) => {
+          const url = new URL(request.url);
+          capturedParams = url.searchParams;
+          return new HttpResponse(null, { status: 200 });
+        })
+      );
+
+      await client.tags.associate("proj-123", "tag-456", "task-789", 5);
+
+      expect(capturedParams).toBeTruthy();
+      expect(capturedParams!.get("tag_id")).toBe("tag-456");
+      expect(capturedParams!.get("entity_id")).toBe("task-789");
+      expect(capturedParams!.get("entityType")).toBe("5");
+    });
+  });
+
+  describe("dissociate", () => {
+    it("should dissociate a tag from a task", async () => {
+      let capturedParams: URLSearchParams | null = null;
+
+      server.use(
+        http.post(`${BASE_URL}/projects/proj-123/tags/dissociate`, ({ request }) => {
+          const url = new URL(request.url);
+          capturedParams = url.searchParams;
+          return new HttpResponse(null, { status: 200 });
+        })
+      );
+
+      await client.tags.dissociate("proj-123", "tag-456", "task-789", 5);
+
+      expect(capturedParams).toBeTruthy();
+      expect(capturedParams!.get("tag_id")).toBe("tag-456");
+      expect(capturedParams!.get("entity_id")).toBe("task-789");
+      expect(capturedParams!.get("entityType")).toBe("5");
+    });
+  });
 });
