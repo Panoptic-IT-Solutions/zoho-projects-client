@@ -9,6 +9,10 @@ export interface TokenManagerConfig {
   clientSecret: string;
   refreshToken: string;
   accountsUrl: string;
+  /** Optional: provide an existing access token to skip initial refresh */
+  accessToken?: string;
+  /** Optional: expiry timestamp in ms since epoch for the provided access token */
+  accessTokenExpiresAt?: number;
 }
 
 /**
@@ -40,6 +44,15 @@ export class TokenManager {
       baseURL: config.accountsUrl,
       timeout: 30000,
     });
+
+    // Initialize with provided token if valid (not expired with 5min buffer)
+    if (config.accessToken && config.accessTokenExpiresAt) {
+      const bufferMs = 5 * 60 * 1000;
+      if (Date.now() < config.accessTokenExpiresAt - bufferMs) {
+        this.accessToken = config.accessToken;
+        this.expiresAt = config.accessTokenExpiresAt;
+      }
+    }
   }
 
   /**
