@@ -224,6 +224,10 @@ export interface ZohoProjectsConfig {
   timeout?: number;
   /** Redis configuration for distributed rate limiting */
   redis?: RateLimiterConfig["redis"];
+  /** Optional: provide an existing access token to skip initial refresh */
+  accessToken?: string;
+  /** Optional: expiry timestamp in ms since epoch for the provided access token */
+  accessTokenExpiresAt?: number;
 }
 
 /**
@@ -269,6 +273,8 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
     accountsUrl = DEFAULT_ACCOUNTS_URL,
     timeout = 30000,
     redis,
+    accessToken,
+    accessTokenExpiresAt,
   } = config;
 
   // Initialize token manager
@@ -277,6 +283,8 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
     clientSecret,
     refreshToken,
     accountsUrl,
+    accessToken,
+    accessTokenExpiresAt,
   };
   const tokenManager = new TokenManager(tokenManagerConfig);
 
