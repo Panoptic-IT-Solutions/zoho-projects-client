@@ -1015,7 +1015,7 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         const response = await requestWithValidation(
           `${basePath}/tags`,
           z.object({ tags: z.array(TagSchema) }),
-          { method: "POST", data }
+          { method: "POST", data: { tags: [data] } }
         );
         return response.tags[0];
       },

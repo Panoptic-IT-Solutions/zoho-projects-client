@@ -237,7 +237,7 @@ export const CreateTaskInputSchema = z.object({
   /** Duration type */
   duration_type: z.enum(["days", "hrs"]).optional(),
   /** Priority level */
-  priority: z.enum(["None", "Low", "Medium", "High"]).optional(),
+  priority: z.enum(["none", "low", "medium", "high"]).optional(),
   /** Percent complete (0-100) */
   percent_complete: z.number().min(0).max(100).optional(),
   /** Assignee user IDs (comma-separated) */

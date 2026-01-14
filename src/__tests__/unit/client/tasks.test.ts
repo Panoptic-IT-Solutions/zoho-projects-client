@@ -176,7 +176,7 @@ describe("tasks", () => {
       const result = await client.tasks.create(TEST_PROJECT_ID, {
         name: "Full Task",
         description: "A detailed task",
-        priority: "High",
+        priority: "high",
         start_date: "01-01-2025",
         end_date: "01-15-2025",
       });
