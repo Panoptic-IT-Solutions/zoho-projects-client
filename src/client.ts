@@ -126,6 +126,7 @@ import {
   type CreateProjectInput,
   type UpdateProjectInput,
   type CreateTaskInput,
+  type CreateSubtaskInput,
   type UpdateTaskInput,
   type CreateTaskTimeLogInput,
   type CreateBugTimeLogInput,
@@ -645,6 +646,56 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         await request(`${basePath}/projects/${projectId}/tasks/${taskId}`, {
           method: "DELETE",
         });
+      },
+
+      /**
+       * List subtasks of a parent task
+       */
+      async listSubtasks(
+        projectId: string,
+        parentTaskId: string,
+        params?: ListParams
+      ): Promise<PaginatedResponse<Task>> {
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasks/${parentTaskId}/subtasks`,
+          TaskListResponseSchema,
+          {
+            params: {
+              page: params?.page ?? params?.index ?? 1,
+              per_page: params?.per_page ?? params?.range ?? DEFAULT_PAGE_SIZE,
+            },
+          }
+        );
+        return {
+          data: response.tasks,
+          pageInfo: response.page_info,
+        };
+      },
+
+      /**
+       * Create a subtask under a parent task
+       * The subtask inherits the tasklist from the parent task
+       */
+      async createSubtask(
+        projectId: string,
+        parentTaskId: string,
+        data: CreateSubtaskInput
+      ): Promise<Task> {
+        // V3 API returns task directly, legacy wraps in {tasks: [...]}
+        const schema = z.union([
+          TaskSchema, // V3: returns task directly
+          z.object({ tasks: z.array(TaskSchema) }), // Legacy
+        ]);
+        const response = await requestWithValidation(
+          `${basePath}/projects/${projectId}/tasks/${parentTaskId}/subtasks`,
+          schema,
+          { method: "POST", data }
+        );
+        // Handle both formats
+        if (response && typeof response === "object" && "tasks" in response) {
+          return (response as { tasks: Task[] }).tasks[0];
+        }
+        return response as Task;
       },
 
       // Internal reference to projects API

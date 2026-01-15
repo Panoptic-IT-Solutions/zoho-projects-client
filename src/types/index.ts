@@ -43,6 +43,7 @@ export {
   LogHoursSchema,
   TaskTagSchema,
   CreateTaskInputSchema,
+  CreateSubtaskInputSchema,
   UpdateTaskInputSchema,
   type Task,
   type TaskListResponse,
@@ -54,6 +55,7 @@ export {
   type LogHours,
   type TaskTag,
   type CreateTaskInput,
+  type CreateSubtaskInput,
   type UpdateTaskInput,
 } from "./tasks.js";
 

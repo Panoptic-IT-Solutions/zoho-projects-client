@@ -220,4 +220,65 @@ describe("tasks", () => {
       ).resolves.toBeUndefined();
     });
   });
+
+  describe("listSubtasks", () => {
+    it("should list subtasks of a parent task", async () => {
+      const mockSubtasks = createTaskListFixture(2);
+
+      server.use(
+        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, () => {
+          return HttpResponse.json(createTaskListResponse(mockSubtasks));
+        })
+      );
+
+      const result = await client.tasks.listSubtasks(TEST_PROJECT_ID, "parent-123");
+
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toMatchObject({
+        id: expect.any(Number),
+        name: expect.any(String),
+      });
+    });
+  });
+
+  describe("createSubtask", () => {
+    it("should create a subtask under a parent task", async () => {
+      const newSubtask = createTaskFixture({ name: "New Subtask" });
+      let capturedBody: unknown;
+
+      server.use(
+        http.post(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, async ({ request }) => {
+          capturedBody = await request.json();
+          return HttpResponse.json({ tasks: [newSubtask] });
+        })
+      );
+
+      const result = await client.tasks.createSubtask(TEST_PROJECT_ID, "parent-123", {
+        name: "New Subtask",
+      });
+
+      expect(capturedBody).toMatchObject({ name: "New Subtask" });
+      expect(result.name).toBe("New Subtask");
+    });
+
+    it("should create a subtask with optional fields", async () => {
+      const newSubtask = createTaskFixture({ name: "Detailed Subtask" });
+
+      server.use(
+        http.post(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, () => {
+          return HttpResponse.json({ tasks: [newSubtask] });
+        })
+      );
+
+      const result = await client.tasks.createSubtask(TEST_PROJECT_ID, "parent-123", {
+        name: "Detailed Subtask",
+        description: "A subtask with details",
+        priority: "high",
+        start_date: "01-01-2025",
+        end_date: "01-05-2025",
+      });
+
+      expect(result.name).toBe("Detailed Subtask");
+    });
+  });
 });

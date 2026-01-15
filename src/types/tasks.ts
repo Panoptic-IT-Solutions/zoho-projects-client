@@ -263,6 +263,41 @@ export const CreateTaskInputSchema = z.object({
 export type CreateTaskInput = z.infer<typeof CreateTaskInputSchema>;
 
 /**
+ * Input schema for creating a subtask
+ * Subtasks don't require tasklist_id as they inherit from the parent task
+ */
+export const CreateSubtaskInputSchema = z.object({
+  /** Subtask name (required) */
+  name: z.string().min(1),
+  /** Subtask description */
+  description: z.string().optional(),
+  /** Start date (MM-DD-YYYY format) */
+  start_date: z.string().optional(),
+  /** End date (MM-DD-YYYY format) */
+  end_date: z.string().optional(),
+  /** Duration in days */
+  duration: z.number().optional(),
+  /** Duration type */
+  duration_type: z.enum(["days", "hrs"]).optional(),
+  /** Priority level */
+  priority: z.enum(["none", "low", "medium", "high"]).optional(),
+  /** Percent complete (0-100) */
+  percent_complete: z.number().min(0).max(100).optional(),
+  /** Assignee user IDs (comma-separated) */
+  persons: z.string().optional(),
+  /** Work hours (format: "HH:MM") */
+  work: z.string().optional(),
+  /** Work type */
+  work_type: z.enum(["work_hrs_per_day", "work_in_percentage", "work_hours"]).optional(),
+  /** Billing type */
+  billingtype: z.enum(["Billable", "Non Billable"]).optional(),
+  /** Custom field values */
+  custom_fields: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+});
+
+export type CreateSubtaskInput = z.infer<typeof CreateSubtaskInputSchema>;
+
+/**
  * Input schema for updating a task (all fields optional)
  */
 export const UpdateTaskInputSchema = CreateTaskInputSchema.partial();
