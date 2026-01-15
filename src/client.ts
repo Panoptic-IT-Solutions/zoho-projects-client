@@ -650,14 +650,16 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
 
       /**
        * List subtasks of a parent task
+       * Fetches project tasks and filters by parent_task_id
        */
       async listSubtasks(
         projectId: string,
         parentTaskId: string,
         params?: ListParams
       ): Promise<PaginatedResponse<Task>> {
+        // Fetch tasks from the project
         const response = await requestWithValidation(
-          `${basePath}/projects/${projectId}/tasks/${parentTaskId}/subtasks`,
+          `${basePath}/projects/${projectId}/tasks`,
           TaskListResponseSchema,
           {
             params: {
@@ -666,14 +668,22 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
             },
           }
         );
+        // Filter tasks by parent_task_id client-side
+        // V3 returns parent_task_id or parental_info.parent_task_id
+        const subtasks = response.tasks.filter(task => {
+          const taskParentId = task.parent_task_id ||
+            (task as unknown as { parental_info?: { parent_task_id?: string } }).parental_info?.parent_task_id;
+          return String(taskParentId) === String(parentTaskId);
+        });
         return {
-          data: response.tasks,
+          data: subtasks,
           pageInfo: response.page_info,
         };
       },
 
       /**
        * Create a subtask under a parent task
+       * Uses V3 API with parental_info.parent_task_id
        * The subtask inherits the tasklist from the parent task
        */
       async createSubtask(
@@ -681,16 +691,43 @@ export function createZohoProjectsClient(config: ZohoProjectsConfig) {
         parentTaskId: string,
         data: CreateSubtaskInput
       ): Promise<Task> {
-        // V3 API returns task directly, legacy wraps in {tasks: [...]}
+        // V3 API: use regular task endpoint with parental_info
+        const requestData: Record<string, unknown> = {
+          name: data.name,
+          parental_info: { parent_task_id: parentTaskId },
+        };
+
+        // Add optional fields
+        if (data.description) requestData.description = data.description;
+        if (data.start_date) requestData.start_date = data.start_date;
+        if (data.end_date) requestData.end_date = data.end_date;
+        if (data.duration !== undefined) {
+          requestData.duration = { value: String(data.duration), type: data.duration_type || "days" };
+        }
+        if (data.priority) requestData.priority = data.priority;
+        if (data.percent_complete !== undefined) requestData.completion_percentage = data.percent_complete;
+        if (data.persons) {
+          // V3 expects owners_and_work structure
+          requestData.owners_and_work = {
+            owners: data.persons.split(",").map(zpuid => ({ zpuid: zpuid.trim() })),
+          };
+        }
+        if (data.work) requestData.work = data.work;
+        if (data.work_type) requestData.work_type = data.work_type;
+        if (data.billingtype) requestData.billing_type = data.billingtype;
+        if (data.custom_fields) requestData.custom_fields = data.custom_fields;
+
+        // V3 API returns task directly
         const schema = z.union([
-          TaskSchema, // V3: returns task directly
-          z.object({ tasks: z.array(TaskSchema) }), // Legacy
+          TaskSchema,
+          z.object({ tasks: z.array(TaskSchema) }),
         ]);
         const response = await requestWithValidation(
-          `${basePath}/projects/${projectId}/tasks/${parentTaskId}/subtasks`,
+          `${basePath}/projects/${projectId}/tasks`,
           schema,
-          { method: "POST", data }
+          { method: "POST", data: requestData }
         );
+
         // Handle both formats
         if (response && typeof response === "object" && "tasks" in response) {
           return (response as { tasks: Task[] }).tasks[0];

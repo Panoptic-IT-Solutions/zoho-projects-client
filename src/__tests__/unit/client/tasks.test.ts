@@ -222,33 +222,36 @@ describe("tasks", () => {
   });
 
   describe("listSubtasks", () => {
-    it("should list subtasks of a parent task", async () => {
-      const mockSubtasks = createTaskListFixture(2);
+    it("should list subtasks of a parent task by filtering tasks client-side", async () => {
+      // Create mock tasks - some with parent_task_id matching, some not
+      const subtask1 = createTaskFixture({ id: 101, name: "Subtask 1", parent_task_id: "parent-123" });
+      const subtask2 = createTaskFixture({ id: 102, name: "Subtask 2", parent_task_id: "parent-123" });
+      const otherTask = createTaskFixture({ id: 103, name: "Other Task", parent_task_id: "other-parent" });
+      const rootTask = createTaskFixture({ id: 104, name: "Root Task" }); // No parent
 
       server.use(
-        http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, () => {
-          return HttpResponse.json(createTaskListResponse(mockSubtasks));
+        http.get(`${BASE_URL}/projects/:projectId/tasks`, () => {
+          return HttpResponse.json(createTaskListResponse([subtask1, subtask2, otherTask, rootTask]));
         })
       );
 
       const result = await client.tasks.listSubtasks(TEST_PROJECT_ID, "parent-123");
 
+      // Should only return the subtasks with matching parent_task_id
       expect(result.data).toHaveLength(2);
-      expect(result.data[0]).toMatchObject({
-        id: expect.any(Number),
-        name: expect.any(String),
-      });
+      expect(result.data[0].name).toBe("Subtask 1");
+      expect(result.data[1].name).toBe("Subtask 2");
     });
   });
 
   describe("createSubtask", () => {
-    it("should create a subtask under a parent task", async () => {
+    it("should create a subtask using V3 API with parental_info", async () => {
       const newSubtask = createTaskFixture({ name: "New Subtask" });
-      let capturedBody: unknown;
+      let capturedBody: Record<string, unknown> | undefined;
 
       server.use(
-        http.post(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, async ({ request }) => {
-          capturedBody = await request.json();
+        http.post(`${BASE_URL}/projects/:projectId/tasks`, async ({ request }) => {
+          capturedBody = await request.json() as Record<string, unknown>;
           return HttpResponse.json({ tasks: [newSubtask] });
         })
       );
@@ -257,15 +260,21 @@ describe("tasks", () => {
         name: "New Subtask",
       });
 
-      expect(capturedBody).toMatchObject({ name: "New Subtask" });
+      // Verify parental_info is passed correctly
+      expect(capturedBody).toMatchObject({
+        name: "New Subtask",
+        parental_info: { parent_task_id: "parent-123" },
+      });
       expect(result.name).toBe("New Subtask");
     });
 
     it("should create a subtask with optional fields", async () => {
       const newSubtask = createTaskFixture({ name: "Detailed Subtask" });
+      let capturedBody: Record<string, unknown> | undefined;
 
       server.use(
-        http.post(`${BASE_URL}/projects/:projectId/tasks/:taskId/subtasks`, () => {
+        http.post(`${BASE_URL}/projects/:projectId/tasks`, async ({ request }) => {
+          capturedBody = await request.json() as Record<string, unknown>;
           return HttpResponse.json({ tasks: [newSubtask] });
         })
       );
@@ -278,6 +287,14 @@ describe("tasks", () => {
         end_date: "01-05-2025",
       });
 
+      expect(capturedBody).toMatchObject({
+        name: "Detailed Subtask",
+        parental_info: { parent_task_id: "parent-123" },
+        description: "A subtask with details",
+        priority: "high",
+        start_date: "01-01-2025",
+        end_date: "01-05-2025",
+      });
       expect(result.name).toBe("Detailed Subtask");
     });
   });
