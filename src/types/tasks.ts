@@ -71,10 +71,10 @@ export const LogHoursSchema = z.object({
 export type LogHours = z.infer<typeof LogHoursSchema>;
 
 /**
- * Task tag
+ * Task tag - V3 API returns id as string
  */
 export const TaskTagSchema = z.object({
-  id: z.number(),
+  id: z.union([z.number(), z.string()]),
   name: z.string(),
   color_class: z.string().optional(),
 });
